@@ -1,5 +1,6 @@
 local internal = RunDirectorBiomeControl_Internal
 local PACK_ID = "run-director"
+local MODULE_ID = "BiomeControl"
 
 local function Read(key)
     return internal.store.read(key)
@@ -14,16 +15,14 @@ internal.IsEnabled = IsEnabled
 
 function internal.GetRunState()
     if not CurrentRun then return nil end
-    if not CurrentRun.RunDirector_BiomeControl_State then
-        CurrentRun.RunDirector_BiomeControl_State = {
+    local state = lib.gameObject.get(CurrentRun, PACK_ID, MODULE_ID, "run", function()
+        return {
             BiomePrioritySatisfied = {},
             ForcedNPCPending = {},
             NPCEncounterSeen = {},
             OnlyAllowForcedEncounters = Read("OnlyAllowForcedEncounters"),
         }
-    end
-
-    local state = CurrentRun.RunDirector_BiomeControl_State
+    end)
     state.OnlyAllowForcedEncounters = Read("OnlyAllowForcedEncounters")
     state.ForcedNPCPending = {}
 
