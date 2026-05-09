@@ -179,7 +179,7 @@ local function DrawSurfaceTab(imgui, session)
     if activeTab == "NPCs" then
         internal.DrawRegionNpcs(imgui, session, SURFACE_REGION)
     elseif activeTab == "N" then
-        internal.DrawBiomeTab_Ephyra(imgui, session, internal.store)
+        internal.DrawBiomeTab_Ephyra(imgui, session)
     elseif activeTab == "O" then
         internal.DrawBiomeTab_Thessaly(imgui, session)
     elseif activeTab == "P" then

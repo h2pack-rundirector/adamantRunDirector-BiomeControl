@@ -296,7 +296,7 @@ local function DrawEphyraMinibossRow(imgui, session)
     })
 end
 
-local function DrawEphyraRewards(imgui, session, store)
+local function DrawEphyraRewards(imgui, session)
     internal.DrawSectionHeading(imgui, "Rewards", { 0.70, 0.84, 0.96, 1.0 })
     lib.widgets.dropdown(imgui, session, "ReplaceHermesInEphyra", {
         label = "Hub Hermes Replacement",
@@ -308,14 +308,14 @@ local function DrawEphyraRewards(imgui, session, store)
 
     imgui.Spacing()
     lib.widgets.text(imgui, "Easy SubRoom Rewards")
-    lib.widgets.packedCheckboxList(imgui, session, "PackedBannedEphyraSubRoomRewards", store, {})
+    lib.widgets.packedCheckboxList(imgui, session, "PackedBannedEphyraSubRoomRewards", {})
 
     imgui.Spacing()
     lib.widgets.text(imgui, "Hard SubRoom Rewards")
-    lib.widgets.packedCheckboxList(imgui, session, "PackedBannedEphyraSubRoomRewardsHard", store, {})
+    lib.widgets.packedCheckboxList(imgui, session, "PackedBannedEphyraSubRoomRewardsHard", {})
 end
 
-function internal.DrawBiomeTab_Ephyra(imgui, session, store)
+function internal.DrawBiomeTab_Ephyra(imgui, session)
     internal.DrawSectionHeading(imgui, "Rooms", { 0.90, 0.82, 0.56, 1.0 })
     DrawEphyraStoryRow(imgui, session)
 
@@ -324,5 +324,5 @@ function internal.DrawBiomeTab_Ephyra(imgui, session, store)
     DrawEphyraMinibossRow(imgui, session)
 
     imgui.Spacing()
-    DrawEphyraRewards(imgui, session, store)
+    DrawEphyraRewards(imgui, session)
 end
