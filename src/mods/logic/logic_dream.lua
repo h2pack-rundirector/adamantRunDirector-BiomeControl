@@ -1,5 +1,6 @@
 local module = {}
 local definitions
+local catalog
 
 local function BindLogic()
     local ROUTE_KEYS = {
@@ -10,7 +11,7 @@ local function BindLogic()
     }
 
     local function IsKnownBiome(value)
-        return definitions.biomeMap[value] ~= nil
+        return catalog.biomeMap[value] ~= nil
     end
 
     local function IsValidRoute(route)
@@ -78,6 +79,7 @@ end
 
 function module.bind(deps)
     definitions = deps.definitions
+    catalog = deps.catalog
     BindLogic()
     return module
 end

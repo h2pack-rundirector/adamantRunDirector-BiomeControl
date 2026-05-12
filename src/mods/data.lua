@@ -1,14 +1,14 @@
 local data = {}
 
 local definitions = import("mods/data/definitions.lua")
+local biomeLoader = import("mods/data/biomes.lua")
 local catalog = import("mods/data/catalog.lua")
-local extensionLoader = import("mods/data/extensions.lua")
 local storage = import("mods/data/storage.lua")
-local extensionControls = extensionLoader.load()
+local biomeRegistry = biomeLoader.load()
 
 local catalogModel = catalog.create({
     definitions = definitions,
-    extensionControls = extensionControls,
+    biomes = biomeRegistry,
     defaults = {
         roomModeValues = definitions.roomModeValues,
         roomModeDisplayValues = definitions.roomModeDisplayValues,

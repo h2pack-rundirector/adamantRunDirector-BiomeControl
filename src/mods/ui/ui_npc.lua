@@ -1,5 +1,4 @@
 ﻿local module = {}
-local definitions
 local catalog
 local components
 
@@ -28,7 +27,7 @@ local function BindDraw()
 
     local function BuildRegionBiomeKeyLookup(region)
         local keys = {}
-        for _, biome in ipairs(definitions.biomeTabs or {}) do
+        for _, biome in ipairs(catalog.biomeTabs or {}) do
             if biome.region == region then
                 keys[biome.key] = true
             end
@@ -120,7 +119,6 @@ local function BindDraw()
 end
 
 function module.bind(deps)
-    definitions = deps.definitions
     catalog = deps.catalog
     components = deps.components
     BindDraw()

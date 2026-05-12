@@ -118,36 +118,39 @@ local function buildLookups(model)
     end
 end
 
-local function appendSpecList(target, values)
+local function appendSpecList(target, biomeKey, values)
     for _, value in ipairs(values or {}) do
-        target[#target + 1] = value
+        local entry = cloneData(value)
+        entry.biome = entry.biome or biomeKey
+        target[#target + 1] = entry
     end
 end
 
 local function appendControlList(target, values)
     for _, value in ipairs(values or {}) do
-        target[#target + 1] = value
+        target[#target + 1] = cloneData(value)
     end
 end
 
-local function appendControlMap(target, source)
-    for key, list in pairs(source or {}) do
-        target[key] = target[key] or {}
-        appendControlList(target[key], list)
-    end
-end
-
-local function buildDefinitionSpecs(definitions)
+local function buildBiomeSpecs(biomes)
     local roomDefinitionSpecs = {}
     local npcDefinitionSpecs = {}
 
-    for _, biome in ipairs(definitions.biomeTabs) do
-        local spec = definitions.biomeSpecs[biome.key] or {}
-        appendSpecList(roomDefinitionSpecs, spec.rooms)
-        appendSpecList(npcDefinitionSpecs, spec.npcs)
+    for _, biome in ipairs(biomes) do
+        appendSpecList(roomDefinitionSpecs, biome.key, biome.rooms)
+        appendSpecList(npcDefinitionSpecs, biome.key, biome.npcs)
     end
 
     return roomDefinitionSpecs, npcDefinitionSpecs
+end
+
+local function appendBiomeControls(model, biome)
+    local controls = biome.controls or {}
+    appendControlList(model.stateFields, controls.stateFields)
+    appendControlList(model.rangeFields, controls.rangeFields)
+    appendControlList(model.biomeRooms[biome.key], controls.rooms)
+    appendControlList(model.biomeRewards[biome.key], controls.rewards)
+    appendControlList(model.biomeSpecials[biome.key], controls.specials)
 end
 
 local function getPackedRewardFields(biomeRewards)
@@ -176,10 +179,14 @@ local function getRangeFieldLookup(rangeFields)
 end
 
 function catalog.create(args)
-    local definitions = args.definitions
-    local extensionControls = args.extensionControls or {}
-    local roomDefinitionSpecs, npcDefinitionSpecs = buildDefinitionSpecs(definitions)
+    local biomeRegistry = args.biomes or {}
+    local biomes = biomeRegistry.ordered or biomeRegistry
+    local roomDefinitionSpecs, npcDefinitionSpecs = buildBiomeSpecs(biomes)
     local model = {
+        biomes = biomes,
+        biomeLookup = biomeRegistry.lookup or {},
+        biomeTabs = {},
+        biomeMap = {},
         roomDefinitionSpecs = roomDefinitionSpecs,
         npcDefinitionSpecs = npcDefinitionSpecs,
         roomDefinitions = {},
@@ -199,27 +206,29 @@ function catalog.create(args)
         rangeFieldLookup = {},
     }
 
-    appendControlList(model.stateFields, extensionControls.stateFields)
-    appendControlList(model.rangeFields, extensionControls.rangeFields)
-    appendControlMap(model.biomeRooms, extensionControls.biomeRooms)
-    appendControlMap(model.biomeRewards, extensionControls.biomeRewards)
-    appendControlMap(model.biomeSpecials, extensionControls.biomeSpecials)
-
-    for _, biome in ipairs(definitions.biomeTabs) do
+    for _, biome in ipairs(biomes) do
+        model.biomeLookup[biome.key] = biome
+        model.biomeMap[biome.key] = biome.label
+        model.biomeTabs[#model.biomeTabs + 1] = {
+            key = biome.key,
+            label = biome.label,
+            region = biome.region,
+        }
         model.biomeRooms[biome.key] = model.biomeRooms[biome.key] or {}
         model.biomeSpecials[biome.key] = model.biomeSpecials[biome.key] or {}
         model.biomeRewards[biome.key] = model.biomeRewards[biome.key] or {}
+        appendBiomeControls(model, biome)
     end
 
     model.packedRewardFields = getPackedRewardFields(model.biomeRewards)
     model.rangeFieldLookup = getRangeFieldLookup(model.rangeFields)
 
     for _, entry in ipairs(roomDefinitionSpecs) do
-        defineRoomControl(model, args.defaults, definitions.biomeMap, entry)
+        defineRoomControl(model, args.defaults, model.biomeMap, entry)
     end
 
     for _, entry in ipairs(npcDefinitionSpecs) do
-        defineNPCControl(model, args.defaults, definitions.biomeMap, entry)
+        defineNPCControl(model, args.defaults, model.biomeMap, entry)
     end
 
     for _, entries in pairs(model.biomeRooms or {}) do

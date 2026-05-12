@@ -1,5 +1,6 @@
 local module = {}
 local definitions = nil
+local catalog = nil
 local biomeUi = nil
 local npcUi = nil
 local dreamUi = nil
@@ -14,7 +15,7 @@ local function BuildRegionTabList(region)
     local tabs = {
         { key = "NPCs", label = "NPCs" },
     }
-    for _, biome in ipairs(definitions.biomeTabs or {}) do
+    for _, biome in ipairs(catalog.biomeTabs or {}) do
         if biome.region == region then
             tabs[#tabs + 1] = {
                 key = biome.key,
@@ -87,18 +88,20 @@ end
 function module.bind(data)
     local components = import("mods/ui/ui_components.lua")
     definitions = data.definitions
+    catalog = data.catalog
     biomeUi = import("mods/ui/ui_biome.lua").bind({
         definitions = definitions,
-        catalog = data.catalog,
+        catalog = catalog,
         components = components,
     })
     npcUi = import("mods/ui/ui_npc.lua").bind({
         definitions = definitions,
-        catalog = data.catalog,
+        catalog = catalog,
         components = components,
     })
     dreamUi = import("mods/ui/ui_dream.lua").bind({
         definitions = definitions,
+        catalog = catalog,
         components = components,
     })
     settingsUi = import("mods/ui/ui_settings.lua").bind({

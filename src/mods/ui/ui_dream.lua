@@ -1,5 +1,6 @@
 ﻿local module = {}
 local definitions
+local catalog
 local components
 
 local function BindDraw()
@@ -11,7 +12,7 @@ local function BindDraw()
         "DreamRouteBiome4",
     }
 
-    for biomeCode, biomeName in pairs(definitions.biomeMap) do
+    for biomeCode, biomeName in pairs(catalog.biomeMap) do
         biomeDisplayValues[biomeCode] = biomeName
     end
 
@@ -98,6 +99,7 @@ end
 
 function module.bind(deps)
     definitions = deps.definitions
+    catalog = deps.catalog
     components = deps.components
     BindDraw()
     return module

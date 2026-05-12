@@ -1,7 +1,3 @@
-local ephyra = {
-    id = "ephyra",
-}
-
 local EPHYRA_STORY_MODE_OPTIONS = { "default", "disabled", "forced" }
 local EPHYRA_STORY_MODE_DISPLAY = {
     default = "Default",
@@ -43,14 +39,23 @@ local subRoomRewardsHardOptions = {
     { bit = 3, label = "Money",         name = "RoomMoneyDrop" },
 }
 
-ephyra.controls = {
-    stateFields = {
-        { type = "dropdown", alias = "ReplaceHermesInEphyra", label = "Hub Hermes Replacement", default = "" },
-        { type = "int", alias = "PackedBannedEphyraSubRoomRewards", default = 0 },
-        { type = "int", alias = "PackedBannedEphyraSubRoomRewardsHard", default = 0 },
+return {
+    key = "N",
+    label = "Ephyra",
+    region = "Surface",
+    logic = "mods/logic/biomes/n_ephyra.lua",
+    ui = "mods/ui/biomes/n_ephyra.lua",
+    npcs = {
+        { id = "Artemis", groupKey = "ArtemisSurface", min = 4, max = 10 },
+        { id = "Heracles", min = 0, max = 10 },
     },
-    biomeRooms = {
-        N = {
+    controls = {
+        stateFields = {
+            { type = "dropdown", alias = "ReplaceHermesInEphyra", label = "Hub Hermes Replacement", default = "" },
+            { type = "int", alias = "PackedBannedEphyraSubRoomRewards", default = 0 },
+            { type = "int", alias = "PackedBannedEphyraSubRoomRewardsHard", default = 0 },
+        },
+        rooms = {
             {
                 kind = "modeField",
                 label = "Story",
@@ -72,9 +77,7 @@ ephyra.controls = {
                 helpText = "(Choose which Ephyra miniboss can appear, or disable both)",
             },
         },
-    },
-    biomeRewards = {
-        N = {
+        rewards = {
             {
                 kind = "field",
                 alias = "ReplaceHermesInEphyra",
@@ -97,5 +100,3 @@ ephyra.controls = {
         },
     },
 }
-
-return ephyra
