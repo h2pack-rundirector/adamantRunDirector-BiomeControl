@@ -197,13 +197,11 @@ function ResetBiomeControlHarness(opts)
     local host, store = lib.createModule({
         pluginGuid = pluginGuid,
         config = config,
-        definition = {
-            modpack = "run-director",
-            id = "BiomeControl",
-            name = "Biome Control",
-            storage = data.storage.build(),
-            hashGroupPlan = hashGroups.buildHashGroupPlan(),
-        },
+        modpack = "run-director",
+        id = "BiomeControl",
+        name = "Biome Control",
+        storage = data.storage.build(),
+        hashGroupPlan = hashGroups.buildHashGroupPlan(),
         registerPatchMutation = logic.buildPatchPlan,
         registerHooks = opts.registerHooks and logic.registerHooks or nil,
         drawTab = function() end,

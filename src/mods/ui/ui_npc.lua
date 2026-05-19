@@ -35,15 +35,17 @@ local function BindDraw()
         return keys
     end
 
-    local function DrawNpcBiomeRow(imgui, session, def)
+    local function DrawNpcBiomeRow(ctx, def)
+        local imgui = ctx.imgui
+        local session = ctx.session
         local labelColumnX = 36
         local dropdownColumnX = 160
         local rangeColumnX = 310
 
         imgui.Indent(16)
-        components.DrawFixedLabel(imgui, def.region, labelColumnX)
+        components.DrawFixedLabel(ctx, def.region, labelColumnX)
         imgui.SetCursorPosX(dropdownColumnX)
-        lib.widgets.dropdown(imgui, session, def.modeKey, {
+        ctx.widgets.dropdown(def.modeKey, {
             label = "",
             values = NPC_MODE_VALUES,
             displayValues = NPC_MODE_DISPLAY_VALUES,
@@ -53,45 +55,47 @@ local function BindDraw()
         if session.view[def.modeKey] == NPC_MODE_FORCED then
             imgui.SameLine()
             imgui.SetCursorPosX(rangeColumnX)
-            components.DrawRangeDropdowns(imgui, session, def.rangeMinAlias, def.rangeMaxAlias, def.minDefault, def.maxDefault)
+            components.DrawRangeDropdowns(ctx, def.rangeMinAlias, def.rangeMaxAlias, def.minDefault, def.maxDefault)
         end
         imgui.Unindent(16)
     end
 
-    local function DrawNpcGroup(imgui, session, group)
+    local function DrawNpcGroup(ctx, group)
         local color = NPC_GROUP_COLORS[group.actualNPCName] or { 0.90, 0.82, 0.56, 1.0 }
-        lib.widgets.text(imgui, group.label, { color = color })
+        ctx.widgets.text(group.label, { color = color })
         for _, def in ipairs(group.definitions or {}) do
-            DrawNpcBiomeRow(imgui, session, def)
+            DrawNpcBiomeRow(ctx, def)
         end
     end
 
-    local function DrawNpcRules(imgui, session)
+    local function DrawNpcRules(ctx)
+        local imgui = ctx.imgui
         imgui.Spacing()
-        components.DrawSectionHeading(imgui, "NPC Rules", { 0.70, 0.84, 0.96, 1.0 })
-        lib.widgets.checkbox(imgui, session, "OnlyAllowForcedEncounters", {
+        components.DrawSectionHeading(ctx, "NPC Rules", { 0.70, 0.84, 0.96, 1.0 })
+        ctx.widgets.checkbox("OnlyAllowForcedEncounters", {
             label = "Only Allow Forced NPC Encounters",
             tooltip = "Blocks NPC encounters left on Default. Only Forced entries can appear.",
         })
-        lib.widgets.text(imgui, "Blocks NPC encounters left on Default. Only Forced entries can appear.", {
+        ctx.widgets.text("Blocks NPC encounters left on Default. Only Forced entries can appear.", {
             color = { 0.65, 0.65, 0.65, 1.0 },
         })
-        lib.widgets.checkbox(imgui, session, "IgnoreMaxDepth", {
+        ctx.widgets.checkbox("IgnoreMaxDepth", {
             label = "Ignore NPC Max Depth Requirements",
             tooltip = "Forced NPC encounters can still appear after max depth.",
         })
-        lib.widgets.text(imgui, "Forced NPC encounters can still appear after max depth.", {
+        ctx.widgets.text("Forced NPC encounters can still appear after max depth.", {
             color = { 0.65, 0.65, 0.65, 1.0 },
         })
-        lib.widgets.dropdown(imgui, session, "NPCSpacing", {
+        ctx.widgets.dropdown("NPCSpacing", {
             label = "Minimum rooms between field NPC encounters",
             values = NPC_SPACING_VALUES,
             controlWidth = 60,
         })
     end
 
-    function module.drawRegion(imgui, session, region)
-        components.DrawSectionHeading(imgui, "NPCs", { 0.90, 0.82, 0.56, 1.0 })
+    function module.drawRegion(ctx, region)
+        local imgui = ctx.imgui
+        components.DrawSectionHeading(ctx, "NPCs", { 0.90, 0.82, 0.56, 1.0 })
         local drewAny = false
         local regionBiomeKeys = BuildRegionBiomeKeyLookup(region)
         for _, groupId in ipairs(catalog.npcGroups and catalog.npcGroups.orderedIds or {}) do
@@ -106,7 +110,7 @@ local function BindDraw()
                 if drewAny then
                     imgui.Separator()
                 end
-                DrawNpcGroup(imgui, session, {
+                DrawNpcGroup(ctx, {
                     label = group.label,
                     actualNPCName = group.actualNPCName,
                     definitions = regionDefinitions,
@@ -114,7 +118,7 @@ local function BindDraw()
                 drewAny = true
             end
         end
-        DrawNpcRules(imgui, session)
+        DrawNpcRules(ctx)
     end
 end
 

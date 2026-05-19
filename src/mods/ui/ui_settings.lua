@@ -56,15 +56,18 @@ local function BindDraw()
         return values
     end
 
-    function module.draw(imgui, session)
-        components.DrawSectionHeading(imgui, "Route Reward Priorities", { 0.90, 0.82, 0.56, 1.0 })
-        lib.widgets.checkbox(imgui, session, "PrioritizeSpecificRewardEnabled", {
+    function module.draw(ctx)
+        local imgui = ctx.imgui
+        local session = ctx.session
+
+        components.DrawSectionHeading(ctx, "Route Reward Priorities", { 0.90, 0.82, 0.56, 1.0 })
+        ctx.widgets.checkbox("PrioritizeSpecificRewardEnabled", {
             label = "Choose First Boon in Each Biome",
         })
 
         if session.view["PrioritizeSpecificRewardEnabled"] == true then
             local availablePriorityOptions = BuildPriorityOptions()
-            lib.widgets.dropdown(imgui, session, "PriorityBiome1", {
+            ctx.widgets.dropdown("PriorityBiome1", {
                 label = "Biome 1 Choice",
                 values = availablePriorityOptions,
                 displayValues = priorityDisplayValues,
@@ -72,7 +75,7 @@ local function BindDraw()
                 labelWidth = PRIORITY_LABEL_WIDTH,
                 controlWidth = 180,
             })
-            lib.widgets.dropdown(imgui, session, "PriorityBiome2", {
+            ctx.widgets.dropdown("PriorityBiome2", {
                 label = "Biome 2 Choice",
                 values = availablePriorityOptions,
                 displayValues = priorityDisplayValues,
@@ -80,7 +83,7 @@ local function BindDraw()
                 labelWidth = PRIORITY_LABEL_WIDTH,
                 controlWidth = 180,
             })
-            lib.widgets.dropdown(imgui, session, "PriorityBiome3", {
+            ctx.widgets.dropdown("PriorityBiome3", {
                 label = "Biome 3 Choice",
                 values = availablePriorityOptions,
                 displayValues = priorityDisplayValues,
@@ -88,7 +91,7 @@ local function BindDraw()
                 labelWidth = PRIORITY_LABEL_WIDTH,
                 controlWidth = 180,
             })
-            lib.widgets.dropdown(imgui, session, "PriorityBiome4", {
+            ctx.widgets.dropdown("PriorityBiome4", {
                 label = "Biome 4 Choice",
                 values = availablePriorityOptions,
                 displayValues = priorityDisplayValues,
@@ -99,14 +102,14 @@ local function BindDraw()
         end
 
         imgui.Spacing()
-        components.DrawSectionHeading(imgui, "Trial Reward Priorities", { 0.70, 0.84, 0.96, 1.0 })
-        lib.widgets.checkbox(imgui, session, "PrioritizeTrialRewardEnabled", {
+        components.DrawSectionHeading(ctx, "Trial Reward Priorities", { 0.70, 0.84, 0.96, 1.0 })
+        ctx.widgets.checkbox("PrioritizeTrialRewardEnabled", {
             label = "Choose Boon Priorities in Trial Rooms",
         })
 
         if session.view["PrioritizeTrialRewardEnabled"] == true then
             local availablePriorityOptions = BuildPriorityOptions()
-            lib.widgets.dropdown(imgui, session, "PriorityTrial1", {
+            ctx.widgets.dropdown("PriorityTrial1", {
                 label = "Trial Choice A",
                 values = availablePriorityOptions,
                 displayValues = priorityDisplayValues,
@@ -114,7 +117,7 @@ local function BindDraw()
                 labelWidth = PRIORITY_LABEL_WIDTH,
                 controlWidth = 180,
             })
-            lib.widgets.dropdown(imgui, session, "PriorityTrial2", {
+            ctx.widgets.dropdown("PriorityTrial2", {
                 label = "Trial Choice B",
                 values = availablePriorityOptions,
                 displayValues = priorityDisplayValues,
@@ -125,9 +128,9 @@ local function BindDraw()
         end
 
         imgui.Spacing()
-        lib.widgets.separator(imgui)
+        ctx.widgets.separator()
         imgui.Spacing()
-        lib.widgets.confirmButton(imgui, session, "biome_control_reset_all_settings", "Reset All Controls", {
+        ctx.widgets.confirmButton("biome_control_reset_all_settings", "Reset All Controls", {
             confirmLabel = "Confirm Reset All",
             onConfirm = function()
                 session.resetToDefaults()

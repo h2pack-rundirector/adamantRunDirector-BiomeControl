@@ -8,7 +8,7 @@ local MODULE_ID = "BiomeControl"
 
 local function GetRunState(store)
     if not CurrentRun then return nil end
-    local state = lib.gameObject.get(CurrentRun, "run-director", MODULE_ID, "run", function()
+    local state = lib.gameCache.get(CurrentRun, "run-director", MODULE_ID, "run", function()
         return {
             BiomePrioritySatisfied = {},
             ForcedNPCPending = {},

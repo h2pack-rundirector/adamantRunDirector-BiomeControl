@@ -9,8 +9,8 @@ local MINIBOSS_SECTION = {
     types = { "MiniBoss" },
 }
 
-function module.draw(imgui, session)
-    return components.DrawRoomSection(imgui, session, definitions, catalog, "I", MINIBOSS_SECTION)
+function module.draw(ctx)
+    return components.DrawRoomSection(ctx, definitions, catalog, "I", MINIBOSS_SECTION)
 end
 
 function module.bind(deps)

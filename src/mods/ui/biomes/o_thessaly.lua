@@ -17,9 +17,11 @@ local function getThessalyRangeField()
     end
 end
 
-local function drawThessalyMinibossRow(imgui, session)
+local function drawThessalyMinibossRow(ctx)
+    local imgui = ctx.imgui
+    local session = ctx.session
     local rangeColumnGap = 20
-    components.DrawModeRow(imgui, session, catalog, "ThessalyMiniBossMode", nil, 200)
+    components.DrawModeRow(ctx, catalog, "ThessalyMiniBossMode", nil, 200)
 
     local mode = catalog.GetModeValue(function(key)
         return session.view[key]
@@ -29,8 +31,7 @@ local function drawThessalyMinibossRow(imgui, session)
         imgui.SameLine()
         imgui.SetCursorPosX(imgui.GetCursorPosX() + rangeColumnGap)
         components.DrawRangeDropdowns(
-            imgui,
-            session,
+            ctx,
             rangeField.rangeMinAlias,
             rangeField.rangeMaxAlias,
             rangeField.min,
@@ -39,11 +40,11 @@ local function drawThessalyMinibossRow(imgui, session)
     end
 end
 
-function module.draw(imgui, session)
-    components.DrawRoomSection(imgui, session, definitions, catalog, "O", ROOM_SECTION)
+function module.draw(ctx)
+    components.DrawRoomSection(ctx, definitions, catalog, "O", ROOM_SECTION)
 
-    components.DrawSectionHeading(imgui, "Minibosses", { 0.88, 0.38, 0.32, 1.0 })
-    drawThessalyMinibossRow(imgui, session)
+    components.DrawSectionHeading(ctx, "Minibosses", { 0.88, 0.38, 0.32, 1.0 })
+    drawThessalyMinibossRow(ctx)
     return true
 end
 
