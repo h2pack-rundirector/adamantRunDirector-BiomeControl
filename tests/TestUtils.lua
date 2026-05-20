@@ -44,7 +44,6 @@ rom.mods["SGG_Modding-Chalk"] = {
 }
 
 local registeredWraps = {}
-local harnessResetCounter = 0
 
 modutil = {
     once_loaded = {
@@ -179,13 +178,42 @@ local function applyOverrides(target, overrides)
     end
 end
 
+local function refreshGodAvailabilityProvider(pluginGuid, godAvailability)
+    local host = lib.createModule({
+        pluginGuid = pluginGuid .. ":god-availability-provider",
+        config = {},
+        modpack = "run-director",
+        id = "TestGodPoolProvider",
+        name = "Test God Pool Provider",
+        drawTab = function() end,
+    })
+
+    if godAvailability then
+        host.integrations.register("run-director.god-availability", {
+            providerId = "TestGodPool",
+            api = {
+                isActive = function()
+                    return godAvailability.active ~= false
+                end,
+                isAvailable = function(godKey)
+                    local available = godAvailability.available or {}
+                    if available[godKey] ~= nil then
+                        return available[godKey]
+                    end
+                    return true
+                end,
+            },
+        })
+    end
+
+    host.tryActivate()
+end
+
 function ResetBiomeControlHarness(opts)
     opts = opts or {}
-    harnessResetCounter = harnessResetCounter + 1
-    local pluginGuid = opts.pluginGuid or ("adamant-RunDirector_BiomeControl:test:" .. tostring(harnessResetCounter))
+    local pluginGuid = opts.pluginGuid or "adamant-RunDirector_BiomeControl:test"
     registeredWraps = {}
     installBaseGlobals(opts)
-    lib.integrations.unregisterProvider("TestGodPool")
 
     local data = dofile("src/mods/data.lua")
     local hashGroups = import("mods/hash_groups.lua").bind(data)
@@ -202,28 +230,16 @@ function ResetBiomeControlHarness(opts)
         name = "Biome Control",
         storage = data.storage.build(),
         hashGroupPlan = hashGroups.buildHashGroupPlan(),
-        registerPatchMutation = logic.buildPatchPlan,
-        registerHooks = opts.registerHooks and logic.registerHooks or nil,
         drawTab = function() end,
     })
-    host.tryActivate()
-
-    if opts.godAvailability then
-        lib.integrations.register("run-director.god-availability", "TestGodPool", {
-            isActive = function()
-                return opts.godAvailability.active ~= false
-            end,
-            isAvailable = function(godKey)
-                local available = opts.godAvailability.available or {}
-                if available[godKey] ~= nil then
-                    return available[godKey]
-                end
-                return true
-            end,
-        })
+    host.mutation.patch(logic.buildPatchPlan)
+    if opts.registerHooks then
+        logic.registerHooks(host, store)
     end
+    host.tryActivate()
+    refreshGodAvailabilityProvider(pluginGuid, opts.godAvailability)
 
-    local liveHost = lib.getLiveModuleHost(pluginGuid)
+    local liveHost = lib.createFrameworkRuntime("adamant-ModpackFramework").modules.getLiveHost(pluginGuid)
 
     return {
         data = data,

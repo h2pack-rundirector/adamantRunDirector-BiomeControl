@@ -24,14 +24,14 @@ local function BindLogic()
     function module.registerHooks(host, store)
         local read = store.read
 
-        lib.hooks.Wrap("ChooseEncounter", function(base, currentRun, room, args)
+        host.hooks.wrap("ChooseEncounter", function(base, currentRun, room, args)
             if not host.isEnabled() then return base(currentRun, room, args) end
 
             args = args or {}
             local legalEncounters = args.LegalEncounters or room.LegalEncounters
             if not legalEncounters then return base(currentRun, room, args) end
 
-            local state = GetRunState(store)
+            local state = GetRunState(host, store)
             if not state then return base(currentRun, room, args) end
 
             local currentRoomSet = room and room.RoomSetName
@@ -122,9 +122,9 @@ local function BindLogic()
         end)
 
         for _, npcName in ipairs(npcPriorityList) do
-            lib.hooks.Wrap("Begin" .. npcName .. "Encounter", function(base, currentRun, room, args)
+            host.hooks.wrap("Begin" .. npcName .. "Encounter", function(base, currentRun, room, args)
                 if host.isEnabled() then
-                    local state = GetRunState(store)
+                    local state = GetRunState(host, store)
                     if state then
                         state.NPCEncounterSeen[npcName] = true
                     end

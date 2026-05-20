@@ -21,7 +21,7 @@ function module.buildPatchPlan(plan, _, store)
 end
 
 function module.registerHooks(host, store)
-    lib.hooks.Wrap("SelectFieldsDoorCageCount", function(base, run, room)
+    host.hooks.wrap("SelectFieldsDoorCageCount", function(base, run, room)
         if not host.isEnabled() then
             return base(run, room)
         end

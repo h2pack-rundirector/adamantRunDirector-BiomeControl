@@ -4,11 +4,9 @@ local biomeLogic
 local lootLogic
 local npcLogic
 local dreamLogic
-local MODULE_ID = "BiomeControl"
 
-local function GetRunState(store)
-    if not CurrentRun then return nil end
-    local state = lib.gameCache.get(CurrentRun, "run-director", MODULE_ID, "run", function()
+local function GetRunState(host, store)
+    local state = host.gameCache.currentRun.get("run", function()
         return {
             BiomePrioritySatisfied = {},
             ForcedNPCPending = {},
@@ -16,6 +14,7 @@ local function GetRunState(store)
             OnlyAllowForcedEncounters = store.read("OnlyAllowForcedEncounters"),
         }
     end)
+    if not state then return nil end
     state.OnlyAllowForcedEncounters = store.read("OnlyAllowForcedEncounters")
     state.ForcedNPCPending = {}
 

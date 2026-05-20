@@ -25,11 +25,11 @@ local function BindDraw()
         end
     end
 
-    local function IsGodPoolFilteringActive()
-        return lib.integrations.invoke(GOD_AVAILABILITY_INTEGRATION, "isActive", false) == true
+    local function IsGodPoolFilteringActive(host)
+        return host.integrations.invoke(GOD_AVAILABILITY_INTEGRATION, "isActive", false) == true
     end
 
-    local function IsPriorityLootAvailable(lootKey)
+    local function IsPriorityLootAvailable(host, lootKey)
         if lootKey == "" then
             return true
         end
@@ -39,17 +39,17 @@ local function BindDraw()
             return true
         end
 
-        return lib.integrations.invoke(GOD_AVAILABILITY_INTEGRATION, "isAvailable", true, godKey) ~= false
+        return host.integrations.invoke(GOD_AVAILABILITY_INTEGRATION, "isAvailable", true, godKey) ~= false
     end
 
-    local function BuildPriorityOptions()
-        if not IsGodPoolFilteringActive() then
+    local function BuildPriorityOptions(host)
+        if not IsGodPoolFilteringActive(host) then
             return priorityOptions
         end
 
         local values = {}
         for _, value in ipairs(priorityOptions) do
-            if IsPriorityLootAvailable(value) then
+            if IsPriorityLootAvailable(host, value) then
                 values[#values + 1] = value
             end
         end
@@ -59,6 +59,7 @@ local function BindDraw()
     function module.draw(ctx)
         local imgui = ctx.imgui
         local session = ctx.session
+        local host = ctx.host
 
         components.DrawSectionHeading(ctx, "Route Reward Priorities", { 0.90, 0.82, 0.56, 1.0 })
         ctx.widgets.checkbox("PrioritizeSpecificRewardEnabled", {
@@ -66,7 +67,7 @@ local function BindDraw()
         })
 
         if session.view["PrioritizeSpecificRewardEnabled"] == true then
-            local availablePriorityOptions = BuildPriorityOptions()
+            local availablePriorityOptions = BuildPriorityOptions(host)
             ctx.widgets.dropdown("PriorityBiome1", {
                 label = "Biome 1 Choice",
                 values = availablePriorityOptions,
@@ -108,7 +109,7 @@ local function BindDraw()
         })
 
         if session.view["PrioritizeTrialRewardEnabled"] == true then
-            local availablePriorityOptions = BuildPriorityOptions()
+            local availablePriorityOptions = BuildPriorityOptions(host)
             ctx.widgets.dropdown("PriorityTrial1", {
                 label = "Trial Choice A",
                 values = availablePriorityOptions,

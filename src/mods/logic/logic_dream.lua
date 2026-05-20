@@ -52,7 +52,7 @@ local function BindLogic()
     function module.registerHooks(host, store)
         local read = store.read
 
-        lib.hooks.Wrap("SelectNextDreamBiome", function(base, currentRoomSet)
+        host.hooks.wrap("SelectNextDreamBiome", function(base, currentRoomSet)
             if not host.isEnabled() then return base(currentRoomSet) end
             if not CurrentRun or not CurrentRun.IsDreamRun or not CurrentRun.CurrentRoom then
                 return base(currentRoomSet)
