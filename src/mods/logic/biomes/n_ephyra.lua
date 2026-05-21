@@ -1,5 +1,6 @@
 local module = {}
 local catalog
+local CreateStoreReader
 
 local function isOptionBanned(packedValue, bit)
     return bit32.band(packedValue or 0, bit32.lshift(1, bit)) ~= 0
@@ -156,7 +157,7 @@ local function applyEphyraRewardBans(plan, read, log)
 end
 
 function module.buildPatchPlan(plan, host, store)
-    local read = store.read
+    local read = CreateStoreReader(store)
     local log = host.logIf
     replaceHermesInEphyra(plan, read, log)
     blockReplacementFromArtemis(plan, read, log)
@@ -166,6 +167,7 @@ end
 
 function module.bind(deps)
     catalog = deps.catalog
+    CreateStoreReader = deps.CreateStoreReader
     return module
 end
 

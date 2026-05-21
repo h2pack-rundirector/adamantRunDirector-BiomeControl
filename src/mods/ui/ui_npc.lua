@@ -35,9 +35,9 @@ local function BindDraw()
         return keys
     end
 
-    local function DrawNpcBiomeRow(draw, def)
+    local function DrawNpcBiomeRow(draw, data, def)
         local imgui = draw.imgui
-        local session = draw.session
+        local modeField = data.get(def.modeKey)
         local labelColumnX = 36
         local dropdownColumnX = 160
         local rangeColumnX = 310
@@ -45,55 +45,55 @@ local function BindDraw()
         imgui.Indent(16)
         components.DrawFixedLabel(draw, def.region, labelColumnX)
         imgui.SetCursorPosX(dropdownColumnX)
-        draw.widgets.dropdown(def.modeKey, {
+        draw.widgets.dropdown(modeField, {
             label = "",
             values = NPC_MODE_VALUES,
             displayValues = NPC_MODE_DISPLAY_VALUES,
             controlWidth = 120,
         })
 
-        if session.view[def.modeKey] == NPC_MODE_FORCED then
+        if modeField:read() == NPC_MODE_FORCED then
             imgui.SameLine()
             imgui.SetCursorPosX(rangeColumnX)
-            components.DrawRangeDropdowns(draw, def.rangeMinAlias, def.rangeMaxAlias, def.minDefault, def.maxDefault)
+            components.DrawRangeDropdowns(draw, data, def.rangeMinAlias, def.rangeMaxAlias, def.minDefault, def.maxDefault)
         end
         imgui.Unindent(16)
     end
 
-    local function DrawNpcGroup(draw, group)
+    local function DrawNpcGroup(draw, data, group)
         local color = NPC_GROUP_COLORS[group.actualNPCName] or { 0.90, 0.82, 0.56, 1.0 }
         draw.widgets.text(group.label, { color = color })
         for _, def in ipairs(group.definitions or {}) do
-            DrawNpcBiomeRow(draw, def)
+            DrawNpcBiomeRow(draw, data, def)
         end
     end
 
-    local function DrawNpcRules(draw)
+    local function DrawNpcRules(draw, data)
         local imgui = draw.imgui
         imgui.Spacing()
         components.DrawSectionHeading(draw, "NPC Rules", { 0.70, 0.84, 0.96, 1.0 })
-        draw.widgets.checkbox("OnlyAllowForcedEncounters", {
+        draw.widgets.checkbox(data.get("OnlyAllowForcedEncounters"), {
             label = "Only Allow Forced NPC Encounters",
             tooltip = "Blocks NPC encounters left on Default. Only Forced entries can appear.",
         })
         draw.widgets.text("Blocks NPC encounters left on Default. Only Forced entries can appear.", {
             color = { 0.65, 0.65, 0.65, 1.0 },
         })
-        draw.widgets.checkbox("IgnoreMaxDepth", {
+        draw.widgets.checkbox(data.get("IgnoreMaxDepth"), {
             label = "Ignore NPC Max Depth Requirements",
             tooltip = "Forced NPC encounters can still appear after max depth.",
         })
         draw.widgets.text("Forced NPC encounters can still appear after max depth.", {
             color = { 0.65, 0.65, 0.65, 1.0 },
         })
-        draw.widgets.dropdown("NPCSpacing", {
+        draw.widgets.dropdown(data.get("NPCSpacing"), {
             label = "Minimum rooms between field NPC encounters",
             values = NPC_SPACING_VALUES,
             controlWidth = 60,
         })
     end
 
-    function module.drawRegion(draw, region)
+    function module.drawRegion(draw, data, region)
         local imgui = draw.imgui
         components.DrawSectionHeading(draw, "NPCs", { 0.90, 0.82, 0.56, 1.0 })
         local drewAny = false
@@ -110,7 +110,7 @@ local function BindDraw()
                 if drewAny then
                     imgui.Separator()
                 end
-                DrawNpcGroup(draw, {
+                DrawNpcGroup(draw, data, {
                     label = group.label,
                     actualNPCName = group.actualNPCName,
                     definitions = regionDefinitions,
@@ -118,7 +118,7 @@ local function BindDraw()
                 drewAny = true
             end
         end
-        DrawNpcRules(draw)
+        DrawNpcRules(draw, data)
     end
 end
 

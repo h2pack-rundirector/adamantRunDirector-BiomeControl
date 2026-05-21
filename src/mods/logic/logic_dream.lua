@@ -1,6 +1,7 @@
 local module = {}
 local definitions
 local catalog
+local CreateStoreReader
 
 local function BindLogic()
     local ROUTE_KEYS = {
@@ -50,7 +51,7 @@ local function BindLogic()
     end
 
     function module.registerHooks(host, store)
-        local read = store.read
+        local read = CreateStoreReader(store)
 
         host.hooks.wrap("SelectNextDreamBiome", function(base, currentRoomSet)
             if not host.isEnabled() then return base(currentRoomSet) end
@@ -80,6 +81,7 @@ end
 function module.bind(deps)
     definitions = deps.definitions
     catalog = deps.catalog
+    CreateStoreReader = deps.CreateStoreReader
     BindLogic()
     return module
 end

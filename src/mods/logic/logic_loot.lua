@@ -1,6 +1,7 @@
 local module = {}
 local definitions
 local GetRunState
+local CreateStoreReader
 
 local function BindLogic()
     local GOD_AVAILABILITY_INTEGRATION = "run-director.god-availability"
@@ -48,7 +49,7 @@ local function BindLogic()
     end
 
     function module.registerHooks(host, store)
-        local read = store.read
+        local read = CreateStoreReader(store)
 
         host.hooks.wrap("GetEligibleLootNames", function(base, excludeLootNames)
             if not host.isEnabled() then return base(excludeLootNames) end
@@ -110,6 +111,7 @@ end
 function module.bind(deps)
     definitions = deps.definitions
     GetRunState = deps.GetRunState
+    CreateStoreReader = deps.CreateStoreReader
     BindLogic()
     return module
 end

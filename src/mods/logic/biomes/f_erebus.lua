@@ -1,5 +1,6 @@
 local module = {}
 local catalog
+local CreateStoreReader
 
 local TRIAL_ROOMS = {
     "F_Combat05", "F_Combat06", "F_Combat07",
@@ -34,11 +35,12 @@ local function InjectForcedTrialReward(plan, read, log)
 end
 
 function module.buildPatchPlan(plan, host, store)
-    InjectForcedTrialReward(plan, store.read, host.logIf)
+    InjectForcedTrialReward(plan, CreateStoreReader(store), host.logIf)
 end
 
 function module.bind(deps)
     catalog = deps.catalog
+    CreateStoreReader = deps.CreateStoreReader
     return module
 end
 

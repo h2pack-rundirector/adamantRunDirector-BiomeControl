@@ -37,15 +37,16 @@ local function BindDraw()
         return ""
     end
 
-    local function NormalizeRoute(session)
+    local function NormalizeRoute(data)
         local previous = nil
         local used = {}
 
         for slot, key in ipairs(ROUTE_KEYS) do
-            local value = session.view[key]
+            local field = data.get(key)
+            local value = field:read()
             if not IsValidAtSlot(value, slot, previous, used) then
                 value = FirstValidValue(slot, previous, used)
-                session.write(key, value)
+                field:write(value)
             end
             used[value] = true
             previous = value
@@ -62,24 +63,24 @@ local function BindDraw()
         return values
     end
 
-    function module.draw(draw)
-        local session = draw.session
-        NormalizeRoute(session)
+    function module.draw(draw, data)
+        NormalizeRoute(data)
 
         components.DrawSectionHeading(draw, "Dream Route", { 0.72, 0.80, 1.0, 1.0 })
-        draw.widgets.checkbox("DreamRouteEnabled", {
+        draw.widgets.checkbox(data.get("DreamRouteEnabled"), {
             label = "Override Dream Run Biomes",
         })
 
-        if session.view.DreamRouteEnabled ~= true then
+        if data.get("DreamRouteEnabled"):read() ~= true then
             return
         end
 
         local previous = nil
         local used = {}
         for slot, key in ipairs(ROUTE_KEYS) do
-            local current = session.view[key]
-            local changed = draw.widgets.dropdown(key, {
+            local field = data.get(key)
+            local current = field:read()
+            local changed = draw.widgets.dropdown(field, {
                 label = "Biome " .. slot,
                 values = BuildSlotValues(slot, previous, used, current),
                 displayValues = biomeDisplayValues,
@@ -88,8 +89,8 @@ local function BindDraw()
             })
 
             if changed then
-                NormalizeRoute(session)
-                current = session.view[key]
+                NormalizeRoute(data)
+                current = field:read()
             end
 
             used[current] = true

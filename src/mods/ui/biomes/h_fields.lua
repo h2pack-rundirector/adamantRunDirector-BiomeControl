@@ -9,9 +9,9 @@ local MINIBOSS_SECTION = {
     types = { "MiniBoss" },
 }
 
-function module.draw(draw)
+function module.draw(draw, data)
     local imgui = draw.imgui
-    components.DrawRoomSection(draw, definitions, catalog, "H", MINIBOSS_SECTION)
+    components.DrawRoomSection(draw, data, definitions, catalog, "H", MINIBOSS_SECTION)
 
     local specials = catalog.biomeSpecials.H or {}
     if #specials > 0 then
@@ -20,7 +20,7 @@ function module.draw(draw)
             if index > 1 then
                 imgui.Spacing()
             end
-            components.DrawCheckboxControl(draw, control)
+            components.DrawCheckboxControl(draw, data, control)
         end
     end
     return true

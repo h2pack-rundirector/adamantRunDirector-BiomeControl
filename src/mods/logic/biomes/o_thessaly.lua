@@ -1,5 +1,6 @@
 local module = {}
 local catalog
+local CreateStoreReader
 
 local function appendImpossibleRequirement(plan, roomKey)
     local room = RoomData and RoomData[roomKey]
@@ -85,11 +86,12 @@ local function applyThessalyMiniboss(plan, read, log)
 end
 
 function module.buildPatchPlan(plan, host, store)
-    applyThessalyMiniboss(plan, store.read, host.logIf)
+    applyThessalyMiniboss(plan, CreateStoreReader(store), host.logIf)
 end
 
 function module.bind(deps)
     catalog = deps.catalog
+    CreateStoreReader = deps.CreateStoreReader
     return module
 end
 

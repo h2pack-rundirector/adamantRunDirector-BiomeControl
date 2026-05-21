@@ -263,18 +263,6 @@ function catalog.create(args)
         return entry.modeValues[encoded + 1] or entry.defaultMode
     end
 
-    function model.SetModeValue(session, entryOrKey, value)
-        local entry = resolveModeEntry(model, entryOrKey)
-        if not entry then return end
-
-        local encoded = entry.modeValueLookup[value]
-        if encoded == nil then
-            encoded = entry.modeValueLookup[entry.defaultMode] or 0
-        end
-
-        session.write(entry.modeKey, encoded)
-    end
-
     function model.GetModeDisplay(entryOrKey, value)
         local entry = resolveModeEntry(model, entryOrKey)
         if not entry then

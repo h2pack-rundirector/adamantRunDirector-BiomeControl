@@ -11,7 +11,7 @@ local function getRewardControl(kindOrAlias)
     end
 end
 
-local function drawHubReplacement(draw, control)
+local function drawHubReplacement(draw, data, control)
     if not control then return end
 
     local hubRewardReplacementOptions = { "" }
@@ -24,7 +24,7 @@ local function drawHubReplacement(draw, control)
         hubRewardReplacementDisplayValues[god.lootKey] = god.label
     end
 
-    draw.widgets.dropdown(control.alias, {
+    draw.widgets.dropdown(data.get(control.alias), {
         label = control.label or "Hub Hermes Replacement",
         tooltip = control.helpText,
         values = hubRewardReplacementOptions,
@@ -34,36 +34,36 @@ local function drawHubReplacement(draw, control)
     })
 end
 
-local function drawPackedRewardList(draw, control)
+local function drawPackedRewardList(draw, data, control)
     if not control then return end
 
     draw.imgui.Spacing()
     draw.widgets.text(control.label, {
         tooltip = control.helpText,
     })
-    draw.widgets.packedCheckboxList(control.alias, {
+    draw.widgets.packedCheckboxList(data.get(control.alias), {
         slotCount = #(control.options or {}),
     })
 end
 
-local function drawEphyraRewards(draw)
+local function drawEphyraRewards(draw, data)
     components.DrawSectionHeading(draw, "Rewards", { 0.70, 0.84, 0.96, 1.0 })
-    drawHubReplacement(draw, getRewardControl("field"))
-    drawPackedRewardList(draw, getRewardControl("PackedBannedEphyraSubRoomRewards"))
-    drawPackedRewardList(draw, getRewardControl("PackedBannedEphyraSubRoomRewardsHard"))
+    drawHubReplacement(draw, data, getRewardControl("field"))
+    drawPackedRewardList(draw, data, getRewardControl("PackedBannedEphyraSubRoomRewards"))
+    drawPackedRewardList(draw, data, getRewardControl("PackedBannedEphyraSubRoomRewardsHard"))
 end
 
-function module.draw(draw)
+function module.draw(draw, data)
     local imgui = draw.imgui
     components.DrawSectionHeading(draw, "Rooms", { 0.90, 0.82, 0.56, 1.0 })
-    components.DrawModeRow(draw, catalog, "EphyraStoryMode", nil, 150)
+    components.DrawModeRow(draw, data, catalog, "EphyraStoryMode", nil, 150)
 
     imgui.Spacing()
     components.DrawSectionHeading(draw, "Minibosses", { 0.88, 0.38, 0.32, 1.0 })
-    components.DrawModeRow(draw, catalog, "EphyraMiniBossMode", nil, 250)
+    components.DrawModeRow(draw, data, catalog, "EphyraMiniBossMode", nil, 250)
 
     imgui.Spacing()
-    drawEphyraRewards(draw)
+    drawEphyraRewards(draw, data)
     return true
 end
 

@@ -21,14 +21,15 @@ function components.BuildIntegerValues(minValue, maxValue)
     return values
 end
 
-function components.DrawRangeDropdowns(draw, minAlias, maxAlias, minValue, maxValue)
+function components.DrawRangeDropdowns(draw, data, minAlias, maxAlias, minValue, maxValue)
     local imgui = draw.imgui
-    local session = draw.session
+    local minField = data.get(minAlias)
+    local maxField = data.get(maxAlias)
     local values = components.BuildIntegerValues(minValue, maxValue)
 
     draw.widgets.text("from:", { alignToFramePadding = true })
     imgui.SameLine()
-    local minChanged = draw.widgets.dropdown(minAlias, {
+    local minChanged = draw.widgets.dropdown(minField, {
         label = "",
         values = values,
         controlWidth = 60,
@@ -37,19 +38,19 @@ function components.DrawRangeDropdowns(draw, minAlias, maxAlias, minValue, maxVa
     imgui.SameLine()
     draw.widgets.text("to", { alignToFramePadding = true })
     imgui.SameLine()
-    local maxChanged = draw.widgets.dropdown(maxAlias, {
+    local maxChanged = draw.widgets.dropdown(maxField, {
         label = "",
         values = values,
         controlWidth = 60,
     })
 
-    local currentMin = tonumber(session.view[minAlias]) or minValue
-    local currentMax = tonumber(session.view[maxAlias]) or maxValue
+    local currentMin = tonumber(minField:read()) or minValue
+    local currentMax = tonumber(maxField:read()) or maxValue
     if currentMin > currentMax then
         if minChanged and not maxChanged then
-            session.write(maxAlias, currentMin)
+            maxField:write(currentMin)
         else
-            session.write(minAlias, currentMax)
+            minField:write(currentMax)
         end
     end
 end
@@ -67,7 +68,7 @@ local function buildEncodedModeOptions(definitions, def)
     return values, displayValues
 end
 
-function components.DrawModeRow(draw, catalog, alias, label, controlWidth)
+function components.DrawModeRow(draw, data, catalog, alias, label, controlWidth)
     local entry = catalog.modeEntryLookup[alias]
     local modeValues = {}
     local modeDisplayValues = {}
@@ -78,7 +79,7 @@ function components.DrawModeRow(draw, catalog, alias, label, controlWidth)
         modeDisplayValues[encoded] = entry.modeDisplayValues[value] or tostring(value)
     end
 
-    draw.widgets.dropdown(alias, {
+    draw.widgets.dropdown(data.get(alias), {
         label = label or (entry and entry.label) or alias,
         tooltip = entry and entry.helpText or nil,
         values = modeValues,
@@ -88,16 +89,15 @@ function components.DrawModeRow(draw, catalog, alias, label, controlWidth)
     })
 end
 
-function components.DrawCheckboxControl(draw, control)
-    draw.widgets.checkbox(control.alias, {
+function components.DrawCheckboxControl(draw, data, control)
+    draw.widgets.checkbox(data.get(control.alias), {
         label = control.label,
         tooltip = control.helpText,
     })
 end
 
-function components.DrawRoomRow(draw, definitions, catalog, def)
+function components.DrawRoomRow(draw, data, definitions, catalog, def)
     local imgui = draw.imgui
-    local session = draw.session
     if not def then
         draw.widgets.text("Missing room definition", {
             color = { 0.65, 0.65, 0.65, 1.0 },
@@ -112,7 +112,7 @@ function components.DrawRoomRow(draw, definitions, catalog, def)
 
     components.DrawFixedLabel(draw, def.label, labelColumnX)
     imgui.SetCursorPosX(dropdownColumnX)
-    draw.widgets.dropdown(def.modeKey, {
+    draw.widgets.dropdown(data.get(def.modeKey), {
         label = "",
         values = modeValues,
         displayValues = modeDisplayValues,
@@ -120,15 +120,15 @@ function components.DrawRoomRow(draw, definitions, catalog, def)
     })
 
     if catalog.GetModeValue(function(key)
-        return session.view[key]
+        return data.get(key):read()
     end, def) == "forced" then
         imgui.SameLine()
         imgui.SetCursorPosX(rangeColumnX)
-        components.DrawRangeDropdowns(draw, def.rangeMinAlias, def.rangeMaxAlias, def.minDefault, def.maxDefault)
+        components.DrawRangeDropdowns(draw, data, def.rangeMinAlias, def.rangeMaxAlias, def.minDefault, def.maxDefault)
     end
 end
 
-function components.DrawRoomSection(draw, definitions, catalog, biomeKey, section)
+function components.DrawRoomSection(draw, data, definitions, catalog, biomeKey, section)
     local imgui = draw.imgui
     local drewSection = false
     local biomeDefinitions = catalog.biomeDefinitions and catalog.biomeDefinitions[biomeKey] or {}
@@ -139,7 +139,7 @@ function components.DrawRoomSection(draw, definitions, catalog, biomeKey, sectio
                 components.DrawSectionHeading(draw, section.label, section.color)
                 drewSection = true
             end
-            components.DrawRoomRow(draw, definitions, catalog, def)
+            components.DrawRoomRow(draw, data, definitions, catalog, def)
         end
     end
 

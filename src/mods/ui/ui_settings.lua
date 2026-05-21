@@ -56,19 +56,17 @@ local function BindDraw()
         return values
     end
 
-    function module.draw(draw)
+    function module.draw(draw, data, services)
         local imgui = draw.imgui
-        local session = draw.session
-        local services = draw.services
 
         components.DrawSectionHeading(draw, "Route Reward Priorities", { 0.90, 0.82, 0.56, 1.0 })
-        draw.widgets.checkbox("PrioritizeSpecificRewardEnabled", {
+        draw.widgets.checkbox(data.get("PrioritizeSpecificRewardEnabled"), {
             label = "Choose First Boon in Each Biome",
         })
 
-        if session.view["PrioritizeSpecificRewardEnabled"] == true then
+        if data.get("PrioritizeSpecificRewardEnabled"):read() == true then
             local availablePriorityOptions = BuildPriorityOptions(services)
-            draw.widgets.dropdown("PriorityBiome1", {
+            draw.widgets.dropdown(data.get("PriorityBiome1"), {
                 label = "Biome 1 Choice",
                 values = availablePriorityOptions,
                 displayValues = priorityDisplayValues,
@@ -76,7 +74,7 @@ local function BindDraw()
                 labelWidth = PRIORITY_LABEL_WIDTH,
                 controlWidth = 180,
             })
-            draw.widgets.dropdown("PriorityBiome2", {
+            draw.widgets.dropdown(data.get("PriorityBiome2"), {
                 label = "Biome 2 Choice",
                 values = availablePriorityOptions,
                 displayValues = priorityDisplayValues,
@@ -84,7 +82,7 @@ local function BindDraw()
                 labelWidth = PRIORITY_LABEL_WIDTH,
                 controlWidth = 180,
             })
-            draw.widgets.dropdown("PriorityBiome3", {
+            draw.widgets.dropdown(data.get("PriorityBiome3"), {
                 label = "Biome 3 Choice",
                 values = availablePriorityOptions,
                 displayValues = priorityDisplayValues,
@@ -92,7 +90,7 @@ local function BindDraw()
                 labelWidth = PRIORITY_LABEL_WIDTH,
                 controlWidth = 180,
             })
-            draw.widgets.dropdown("PriorityBiome4", {
+            draw.widgets.dropdown(data.get("PriorityBiome4"), {
                 label = "Biome 4 Choice",
                 values = availablePriorityOptions,
                 displayValues = priorityDisplayValues,
@@ -104,13 +102,13 @@ local function BindDraw()
 
         imgui.Spacing()
         components.DrawSectionHeading(draw, "Trial Reward Priorities", { 0.70, 0.84, 0.96, 1.0 })
-        draw.widgets.checkbox("PrioritizeTrialRewardEnabled", {
+        draw.widgets.checkbox(data.get("PrioritizeTrialRewardEnabled"), {
             label = "Choose Boon Priorities in Trial Rooms",
         })
 
-        if session.view["PrioritizeTrialRewardEnabled"] == true then
+        if data.get("PrioritizeTrialRewardEnabled"):read() == true then
             local availablePriorityOptions = BuildPriorityOptions(services)
-            draw.widgets.dropdown("PriorityTrial1", {
+            draw.widgets.dropdown(data.get("PriorityTrial1"), {
                 label = "Trial Choice A",
                 values = availablePriorityOptions,
                 displayValues = priorityDisplayValues,
@@ -118,7 +116,7 @@ local function BindDraw()
                 labelWidth = PRIORITY_LABEL_WIDTH,
                 controlWidth = 180,
             })
-            draw.widgets.dropdown("PriorityTrial2", {
+            draw.widgets.dropdown(data.get("PriorityTrial2"), {
                 label = "Trial Choice B",
                 values = availablePriorityOptions,
                 displayValues = priorityDisplayValues,
@@ -134,7 +132,7 @@ local function BindDraw()
         draw.widgets.confirmButton("biome_control_reset_all_settings", "Reset All Controls", {
             confirmLabel = "Confirm Reset All",
             onConfirm = function()
-                session.resetToDefaults()
+                data.resetToDefaults()
             end,
         })
     end

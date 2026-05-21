@@ -5,24 +5,31 @@ local lootLogic
 local npcLogic
 local dreamLogic
 
+local function CreateStoreReader(store)
+    return function(alias)
+        return store.get(alias):read()
+    end
+end
+
 local function GetRunState(host, store)
+    local read = CreateStoreReader(store)
     local state = host.cache.currentRun.get("run", function()
         return {
             BiomePrioritySatisfied = {},
             ForcedNPCPending = {},
             NPCEncounterSeen = {},
-            OnlyAllowForcedEncounters = store.read("OnlyAllowForcedEncounters"),
+            OnlyAllowForcedEncounters = read("OnlyAllowForcedEncounters"),
         }
     end)
     if not state then return nil end
-    state.OnlyAllowForcedEncounters = store.read("OnlyAllowForcedEncounters")
+    state.OnlyAllowForcedEncounters = read("OnlyAllowForcedEncounters")
     state.ForcedNPCPending = {}
 
     for _, groupKey in ipairs(catalog.npcGroups.orderedIds or {}) do
         local group = catalog.npcGroups[groupKey]
         state.ForcedNPCPending[groupKey] = {}
         for _, def in ipairs(group.definitions or {}) do
-            local mode = catalog.GetModeValue(store.read, def)
+            local mode = catalog.GetModeValue(read, def)
             if mode == "forced" then
                 state.ForcedNPCPending[groupKey][def.biome] = true
             end
@@ -65,6 +72,7 @@ function logic.bind(data)
         catalog = data.catalog,
         definitions = data.definitions,
         GetRunState = GetRunState,
+        CreateStoreReader = CreateStoreReader,
     }
     biomeLogic = import("mods/logic/logic_biome.lua").bind(logicDeps)
     lootLogic = import("mods/logic/logic_loot.lua").bind(logicDeps)

@@ -1,5 +1,6 @@
 local module = {}
 local catalog
+local CreateStoreReader
 
 local function BindLogic()
     local roomDefinitions = catalog.roomDefinitions
@@ -95,7 +96,7 @@ local function BindLogic()
     end
 
     function module.buildPatchPlan(plan, _, store)
-        local read = store.read
+        local read = CreateStoreReader(store)
         for _, def in ipairs(roomDefinitions) do
             local roomKey = GetRoomKey(def)
             if roomKey then
@@ -118,6 +119,7 @@ end
 
 function module.bind(deps)
     catalog = deps.catalog
+    CreateStoreReader = deps.CreateStoreReader
     BindLogic()
     return module
 end

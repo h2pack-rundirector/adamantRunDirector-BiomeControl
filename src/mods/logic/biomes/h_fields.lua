@@ -1,4 +1,5 @@
 local module = {}
+local CreateStoreReader
 
 local function PreventEchoScam(plan, read)
     if not read("PreventEchoScam") then return end
@@ -17,16 +18,17 @@ local function PreventEchoScam(plan, read)
 end
 
 function module.buildPatchPlan(plan, _, store)
-    PreventEchoScam(plan, store.read)
+    PreventEchoScam(plan, CreateStoreReader(store))
 end
 
 function module.registerHooks(host, store)
+    local read = CreateStoreReader(store)
     host.hooks.wrap("SelectFieldsDoorCageCount", function(base, run, room)
         if not host.isEnabled() then
             return base(run, room)
         end
 
-        if not store.read("ForceTwoRewardFieldsOpeners") then
+        if not read("ForceTwoRewardFieldsOpeners") then
             return base(run, room)
         end
 
@@ -41,7 +43,8 @@ function module.registerHooks(host, store)
     end)
 end
 
-function module.bind()
+function module.bind(deps)
+    CreateStoreReader = deps.CreateStoreReader
     return module
 end
 

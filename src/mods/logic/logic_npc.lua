@@ -1,6 +1,7 @@
 local module = {}
 local catalog
 local GetRunState
+local CreateStoreReader
 
 local function BindLogic()
     local npcLookup = catalog.npcLookup
@@ -15,14 +16,14 @@ local function BindLogic()
     end
 
     function module.buildPatchPlan(plan, _, store)
-        local read = store.read
+        local read = CreateStoreReader(store)
         if NamedRequirementsData.NoRecentFieldNPCEncounter and NamedRequirementsData.NoRecentFieldNPCEncounter[1] then
             plan:set(NamedRequirementsData.NoRecentFieldNPCEncounter[1], "SumPrevRooms", read("NPCSpacing") or 6)
         end
     end
 
     function module.registerHooks(host, store)
-        local read = store.read
+        local read = CreateStoreReader(store)
 
         host.hooks.wrap("ChooseEncounter", function(base, currentRun, room, args)
             if not host.isEnabled() then return base(currentRun, room, args) end
@@ -138,6 +139,7 @@ end
 function module.bind(deps)
     catalog = deps.catalog
     GetRunState = deps.GetRunState
+    CreateStoreReader = deps.CreateStoreReader
     BindLogic()
     return module
 end
