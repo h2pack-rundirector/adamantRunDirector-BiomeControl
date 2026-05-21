@@ -3,11 +3,8 @@ local definitions
 local catalog
 local components
 
-local ROOM_SECTION = {
-    label = "Rooms",
-    types = { "Story", "Trial", "Fountain", "Shop" },
-    color = { 0.70, 0.64, 0.95, 1.0 },
-}
+local THESSALY_ROOMS_COLOR = { 0.70, 0.64, 0.95, 1.0 }
+local thessalyRoomsSection
 
 local function getThessalyRangeField()
     for _, field in ipairs(catalog.rangeFields or {}) do
@@ -41,9 +38,9 @@ local function drawThessalyMinibossRow(draw, data)
 end
 
 function module.draw(draw, data)
-    components.DrawRoomSection(draw, data, definitions, catalog, "O", ROOM_SECTION)
+    components.DrawRoomSection(draw, data, definitions, catalog, "O", thessalyRoomsSection)
 
-    components.DrawSectionHeading(draw, "Minibosses", { 0.88, 0.38, 0.32, 1.0 })
+    components.DrawSectionHeading(draw, components.SECTION_MINIBOSSES.label, components.SECTION_MINIBOSSES.color)
     drawThessalyMinibossRow(draw, data)
     return true
 end
@@ -52,6 +49,11 @@ function module.bind(deps)
     definitions = deps.definitions
     catalog = deps.catalog
     components = deps.components
+    thessalyRoomsSection = {
+        label = components.SECTION_ROOMS.label,
+        color = THESSALY_ROOMS_COLOR,
+        types = components.SECTION_ROOMS.types,
+    }
     return module
 end
 

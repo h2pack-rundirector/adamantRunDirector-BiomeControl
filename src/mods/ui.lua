@@ -5,6 +5,7 @@ local biomeUi = nil
 local npcUi = nil
 local dreamUi = nil
 local settingsUi = nil
+local regionNavOpts = nil
 
 local UNDERWORLD_REGION = "Underworld"
 local SURFACE_REGION = "Surface"
@@ -29,13 +30,9 @@ end
 local function DrawRegionTab(draw, data, region, tabAlias, childId)
     local imgui = draw.imgui
     local tabField = data.get(tabAlias)
-    local tabs = BuildRegionTabList(region)
-    local activeTab = draw.nav.verticalTabs({
-        id = childId .. "Tabs",
-        navWidth = 220,
-        tabs = tabs,
-        activeKey = tabField:read(),
-    })
+    local navOpts = regionNavOpts[region]
+    navOpts.activeKey = tabField:read()
+    local activeTab = draw.nav.verticalTabs(navOpts)
     if activeTab ~= tabField:read() then
         tabField:write(activeTab)
     end
@@ -92,6 +89,18 @@ function module.bind(data)
     local components = import("mods/ui/ui_components.lua")
     definitions = data.definitions
     catalog = data.catalog
+    regionNavOpts = {
+        [UNDERWORLD_REGION] = {
+            id = "BiomeControlUnderworldTabs",
+            navWidth = 220,
+            tabs = BuildRegionTabList(UNDERWORLD_REGION),
+        },
+        [SURFACE_REGION] = {
+            id = "BiomeControlSurfaceTabs",
+            navWidth = 220,
+            tabs = BuildRegionTabList(SURFACE_REGION),
+        },
+    }
     biomeUi = import("mods/ui/ui_biome.lua").bind({
         definitions = definitions,
         catalog = catalog,

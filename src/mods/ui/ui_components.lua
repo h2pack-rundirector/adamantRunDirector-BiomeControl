@@ -1,7 +1,52 @@
 local components = {}
 
+components.SECTION_ROOMS = {
+    label = "Rooms",
+    color = { 0.90, 0.82, 0.56, 1.0 },
+    types = { "Story", "Trial", "Fountain", "Shop" },
+}
+
+components.SECTION_ROOMS_NO_TRIAL = {
+    label = "Rooms",
+    color = components.SECTION_ROOMS.color,
+    types = { "Story", "Fountain", "Shop" },
+}
+
+components.SECTION_MINIBOSSES = {
+    label = "Minibosses",
+    color = { 0.88, 0.38, 0.32, 1.0 },
+    types = { "MiniBoss" },
+}
+
+local ALIGN_TO_FRAME_PADDING_OPTS = {
+    alignToFramePadding = true,
+}
+
+local MUTED_TEXT_OPTS = {
+    color = { 0.65, 0.65, 0.65, 1.0 },
+}
+
+local textColorOptsByColor = setmetatable({}, { __mode = "k" })
+local rangeDropdownOptsByMin = {}
+local modeDropdownOptsByAlias = {}
+local roomModeDropdownOptsByDef = setmetatable({}, { __mode = "k" })
+local checkboxOptsByAlias = {}
+
+local function GetTextColorOpts(color)
+    if type(color) ~= "table" then
+        return nil
+    end
+
+    local opts = textColorOptsByColor[color]
+    if not opts then
+        opts = { color = color }
+        textColorOptsByColor[color] = opts
+    end
+    return opts
+end
+
 function components.DrawSectionHeading(draw, text, color)
-    draw.widgets.text(text, { color = color })
+    draw.widgets.text(text, GetTextColorOpts(color))
     draw.widgets.separator()
 end
 
@@ -21,28 +66,39 @@ function components.BuildIntegerValues(minValue, maxValue)
     return values
 end
 
+local function GetRangeDropdownOpts(minValue, maxValue)
+    local byMax = rangeDropdownOptsByMin[minValue]
+    if not byMax then
+        byMax = {}
+        rangeDropdownOptsByMin[minValue] = byMax
+    end
+
+    local opts = byMax[maxValue]
+    if not opts then
+        opts = {
+            label = "",
+            values = components.BuildIntegerValues(minValue, maxValue),
+            controlWidth = 60,
+        }
+        byMax[maxValue] = opts
+    end
+    return opts
+end
+
 function components.DrawRangeDropdowns(draw, data, minAlias, maxAlias, minValue, maxValue)
     local imgui = draw.imgui
     local minField = data.get(minAlias)
     local maxField = data.get(maxAlias)
-    local values = components.BuildIntegerValues(minValue, maxValue)
+    local opts = GetRangeDropdownOpts(minValue, maxValue)
 
-    draw.widgets.text("from:", { alignToFramePadding = true })
+    draw.widgets.text("from:", ALIGN_TO_FRAME_PADDING_OPTS)
     imgui.SameLine()
-    local minChanged = draw.widgets.dropdown(minField, {
-        label = "",
-        values = values,
-        controlWidth = 60,
-    })
+    local minChanged = draw.widgets.dropdown(minField, opts)
 
     imgui.SameLine()
-    draw.widgets.text("to", { alignToFramePadding = true })
+    draw.widgets.text("to", ALIGN_TO_FRAME_PADDING_OPTS)
     imgui.SameLine()
-    local maxChanged = draw.widgets.dropdown(maxField, {
-        label = "",
-        values = values,
-        controlWidth = 60,
-    })
+    local maxChanged = draw.widgets.dropdown(maxField, opts)
 
     local currentMin = tonumber(minField:read()) or minValue
     local currentMax = tonumber(maxField:read()) or maxValue
@@ -68,56 +124,80 @@ local function buildEncodedModeOptions(definitions, def)
     return values, displayValues
 end
 
-function components.DrawModeRow(draw, data, catalog, alias, label, controlWidth)
+local function GetModeRowDropdownOpts(catalog, alias, label, controlWidth)
+    local opts = modeDropdownOptsByAlias[alias]
+    if opts then
+        return opts
+    end
+
     local entry = catalog.modeEntryLookup[alias]
     local modeValues = {}
     local modeDisplayValues = {}
-
     for index, value in ipairs(entry and entry.modeValues or {}) do
         local encoded = index - 1
         modeValues[#modeValues + 1] = encoded
         modeDisplayValues[encoded] = entry.modeDisplayValues[value] or tostring(value)
     end
 
-    draw.widgets.dropdown(data.get(alias), {
+    opts = {
         label = label or (entry and entry.label) or alias,
         tooltip = entry and entry.helpText or nil,
         values = modeValues,
         displayValues = modeDisplayValues,
         labelWidth = 160,
         controlWidth = controlWidth,
-    })
+    }
+    modeDropdownOptsByAlias[alias] = opts
+    return opts
+end
+
+function components.DrawModeRow(draw, data, catalog, alias, label, controlWidth)
+    draw.widgets.dropdown(data.get(alias), GetModeRowDropdownOpts(catalog, alias, label, controlWidth))
 end
 
 function components.DrawCheckboxControl(draw, data, control)
-    draw.widgets.checkbox(data.get(control.alias), {
-        label = control.label,
-        tooltip = control.helpText,
-    })
+    local opts = checkboxOptsByAlias[control.alias]
+    if not opts then
+        opts = {
+            label = control.label,
+            tooltip = control.helpText,
+        }
+        checkboxOptsByAlias[control.alias] = opts
+    end
+    draw.widgets.checkbox(data.get(control.alias), opts)
+end
+
+local function GetRoomModeDropdownOpts(definitions, def)
+    local opts = roomModeDropdownOptsByDef[def]
+    if opts then
+        return opts
+    end
+
+    local modeValues, modeDisplayValues = buildEncodedModeOptions(definitions, def)
+    opts = {
+        label = "",
+        values = modeValues,
+        displayValues = modeDisplayValues,
+        controlWidth = 120,
+    }
+    roomModeDropdownOptsByDef[def] = opts
+    return opts
 end
 
 function components.DrawRoomRow(draw, data, definitions, catalog, def)
     local imgui = draw.imgui
     if not def then
-        draw.widgets.text("Missing room definition", {
-            color = { 0.65, 0.65, 0.65, 1.0 },
-        })
+        draw.widgets.text("Missing room definition", MUTED_TEXT_OPTS)
         return
     end
 
     local labelColumnX = 36
     local dropdownColumnX = 160
     local rangeColumnX = 310
-    local modeValues, modeDisplayValues = buildEncodedModeOptions(definitions, def)
 
     components.DrawFixedLabel(draw, def.label, labelColumnX)
     imgui.SetCursorPosX(dropdownColumnX)
-    draw.widgets.dropdown(data.get(def.modeKey), {
-        label = "",
-        values = modeValues,
-        displayValues = modeDisplayValues,
-        controlWidth = 120,
-    })
+    draw.widgets.dropdown(data.get(def.modeKey), GetRoomModeDropdownOpts(definitions, def))
 
     if catalog.GetModeValue(function(key)
         return data.get(key):read()
@@ -152,9 +232,7 @@ end
 function components.DrawPlaceholder(draw, region)
     draw.widgets.text(region)
     draw.widgets.separator()
-    draw.widgets.text("No controls are available for this tab.", {
-        color = { 0.65, 0.65, 0.65, 1.0 },
-    })
+    draw.widgets.text("No controls are available for this tab.", MUTED_TEXT_OPTS)
 end
 
 return components

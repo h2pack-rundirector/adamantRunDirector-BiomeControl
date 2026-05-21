@@ -4,12 +4,42 @@ local catalog
 local components
 
 local function BindDraw()
+    local DREAM_ROUTE_HEADING_COLOR = { 0.72, 0.80, 1.0, 1.0 }
     local biomeDisplayValues = {}
     local ROUTE_KEYS = {
         "DreamRouteBiome1",
         "DreamRouteBiome2",
         "DreamRouteBiome3",
         "DreamRouteBiome4",
+    }
+    local DREAM_ROUTE_ENABLED_OPTS = {
+        label = "Override Dream Run Biomes",
+    }
+    local ROUTE_DROPDOWN_OPTS = {
+        {
+            label = "Biome 1",
+            displayValues = biomeDisplayValues,
+            labelWidth = 80,
+            controlWidth = 180,
+        },
+        {
+            label = "Biome 2",
+            displayValues = biomeDisplayValues,
+            labelWidth = 80,
+            controlWidth = 180,
+        },
+        {
+            label = "Biome 3",
+            displayValues = biomeDisplayValues,
+            labelWidth = 80,
+            controlWidth = 180,
+        },
+        {
+            label = "Biome 4",
+            displayValues = biomeDisplayValues,
+            labelWidth = 80,
+            controlWidth = 180,
+        },
     }
 
     for biomeCode, biomeName in pairs(catalog.biomeMap) do
@@ -66,10 +96,8 @@ local function BindDraw()
     function module.draw(draw, data)
         NormalizeRoute(data)
 
-        components.DrawSectionHeading(draw, "Dream Route", { 0.72, 0.80, 1.0, 1.0 })
-        draw.widgets.checkbox(data.get("DreamRouteEnabled"), {
-            label = "Override Dream Run Biomes",
-        })
+        components.DrawSectionHeading(draw, "Dream Route", DREAM_ROUTE_HEADING_COLOR)
+        draw.widgets.checkbox(data.get("DreamRouteEnabled"), DREAM_ROUTE_ENABLED_OPTS)
 
         if data.get("DreamRouteEnabled"):read() ~= true then
             return
@@ -80,13 +108,9 @@ local function BindDraw()
         for slot, key in ipairs(ROUTE_KEYS) do
             local field = data.get(key)
             local current = field:read()
-            local changed = draw.widgets.dropdown(field, {
-                label = "Biome " .. slot,
-                values = BuildSlotValues(slot, previous, used, current),
-                displayValues = biomeDisplayValues,
-                labelWidth = 80,
-                controlWidth = 180,
-            })
+            local opts = ROUTE_DROPDOWN_OPTS[slot]
+            opts.values = BuildSlotValues(slot, previous, used, current)
+            local changed = draw.widgets.dropdown(field, opts)
 
             if changed then
                 NormalizeRoute(data)

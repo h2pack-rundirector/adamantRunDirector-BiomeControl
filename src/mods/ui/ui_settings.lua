@@ -5,10 +5,66 @@ local components
 local function BindDraw()
     local PRIORITY_LABEL_WIDTH = 160
     local GOD_AVAILABILITY_INTEGRATION = "run-director.god-availability"
+    local ROUTE_REWARD_HEADING_COLOR = { 0.90, 0.82, 0.56, 1.0 }
+    local TRIAL_REWARD_HEADING_COLOR = { 0.70, 0.84, 0.96, 1.0 }
     local priorityOptions = { "" }
     local priorityDisplayValues = { [""] = "None" }
     local priorityValueColors = {}
     local priorityGodByLootKey = {}
+    local prioritizeSpecificRewardOpts = {
+        label = "Choose First Boon in Each Biome",
+    }
+    local prioritizeTrialRewardOpts = {
+        label = "Choose Boon Priorities in Trial Rooms",
+    }
+    local priorityBiome1Opts = {
+        label = "Biome 1 Choice",
+        values = priorityOptions,
+        displayValues = priorityDisplayValues,
+        valueColors = priorityValueColors,
+        labelWidth = PRIORITY_LABEL_WIDTH,
+        controlWidth = 180,
+    }
+    local priorityBiome2Opts = {
+        label = "Biome 2 Choice",
+        values = priorityOptions,
+        displayValues = priorityDisplayValues,
+        valueColors = priorityValueColors,
+        labelWidth = PRIORITY_LABEL_WIDTH,
+        controlWidth = 180,
+    }
+    local priorityBiome3Opts = {
+        label = "Biome 3 Choice",
+        values = priorityOptions,
+        displayValues = priorityDisplayValues,
+        valueColors = priorityValueColors,
+        labelWidth = PRIORITY_LABEL_WIDTH,
+        controlWidth = 180,
+    }
+    local priorityBiome4Opts = {
+        label = "Biome 4 Choice",
+        values = priorityOptions,
+        displayValues = priorityDisplayValues,
+        valueColors = priorityValueColors,
+        labelWidth = PRIORITY_LABEL_WIDTH,
+        controlWidth = 180,
+    }
+    local priorityTrial1Opts = {
+        label = "Trial Choice A",
+        values = priorityOptions,
+        displayValues = priorityDisplayValues,
+        valueColors = priorityValueColors,
+        labelWidth = PRIORITY_LABEL_WIDTH,
+        controlWidth = 180,
+    }
+    local priorityTrial2Opts = {
+        label = "Trial Choice B",
+        values = priorityOptions,
+        displayValues = priorityDisplayValues,
+        valueColors = priorityValueColors,
+        labelWidth = PRIORITY_LABEL_WIDTH,
+        controlWidth = 180,
+    }
 
     for _, god in ipairs(definitions.priorityGods or {}) do
         priorityOptions[#priorityOptions + 1] = god.lootKey
@@ -56,74 +112,33 @@ local function BindDraw()
         return values
     end
 
+    local function DrawPriorityDropdown(draw, data, alias, opts, values)
+        opts.values = values
+        draw.widgets.dropdown(data.get(alias), opts)
+    end
+
     function module.draw(draw, data, services)
         local imgui = draw.imgui
 
-        components.DrawSectionHeading(draw, "Route Reward Priorities", { 0.90, 0.82, 0.56, 1.0 })
-        draw.widgets.checkbox(data.get("PrioritizeSpecificRewardEnabled"), {
-            label = "Choose First Boon in Each Biome",
-        })
+        components.DrawSectionHeading(draw, "Route Reward Priorities", ROUTE_REWARD_HEADING_COLOR)
+        draw.widgets.checkbox(data.get("PrioritizeSpecificRewardEnabled"), prioritizeSpecificRewardOpts)
 
         if data.get("PrioritizeSpecificRewardEnabled"):read() == true then
             local availablePriorityOptions = BuildPriorityOptions(services)
-            draw.widgets.dropdown(data.get("PriorityBiome1"), {
-                label = "Biome 1 Choice",
-                values = availablePriorityOptions,
-                displayValues = priorityDisplayValues,
-                valueColors = priorityValueColors,
-                labelWidth = PRIORITY_LABEL_WIDTH,
-                controlWidth = 180,
-            })
-            draw.widgets.dropdown(data.get("PriorityBiome2"), {
-                label = "Biome 2 Choice",
-                values = availablePriorityOptions,
-                displayValues = priorityDisplayValues,
-                valueColors = priorityValueColors,
-                labelWidth = PRIORITY_LABEL_WIDTH,
-                controlWidth = 180,
-            })
-            draw.widgets.dropdown(data.get("PriorityBiome3"), {
-                label = "Biome 3 Choice",
-                values = availablePriorityOptions,
-                displayValues = priorityDisplayValues,
-                valueColors = priorityValueColors,
-                labelWidth = PRIORITY_LABEL_WIDTH,
-                controlWidth = 180,
-            })
-            draw.widgets.dropdown(data.get("PriorityBiome4"), {
-                label = "Biome 4 Choice",
-                values = availablePriorityOptions,
-                displayValues = priorityDisplayValues,
-                valueColors = priorityValueColors,
-                labelWidth = PRIORITY_LABEL_WIDTH,
-                controlWidth = 180,
-            })
+            DrawPriorityDropdown(draw, data, "PriorityBiome1", priorityBiome1Opts, availablePriorityOptions)
+            DrawPriorityDropdown(draw, data, "PriorityBiome2", priorityBiome2Opts, availablePriorityOptions)
+            DrawPriorityDropdown(draw, data, "PriorityBiome3", priorityBiome3Opts, availablePriorityOptions)
+            DrawPriorityDropdown(draw, data, "PriorityBiome4", priorityBiome4Opts, availablePriorityOptions)
         end
 
         imgui.Spacing()
-        components.DrawSectionHeading(draw, "Trial Reward Priorities", { 0.70, 0.84, 0.96, 1.0 })
-        draw.widgets.checkbox(data.get("PrioritizeTrialRewardEnabled"), {
-            label = "Choose Boon Priorities in Trial Rooms",
-        })
+        components.DrawSectionHeading(draw, "Trial Reward Priorities", TRIAL_REWARD_HEADING_COLOR)
+        draw.widgets.checkbox(data.get("PrioritizeTrialRewardEnabled"), prioritizeTrialRewardOpts)
 
         if data.get("PrioritizeTrialRewardEnabled"):read() == true then
             local availablePriorityOptions = BuildPriorityOptions(services)
-            draw.widgets.dropdown(data.get("PriorityTrial1"), {
-                label = "Trial Choice A",
-                values = availablePriorityOptions,
-                displayValues = priorityDisplayValues,
-                valueColors = priorityValueColors,
-                labelWidth = PRIORITY_LABEL_WIDTH,
-                controlWidth = 180,
-            })
-            draw.widgets.dropdown(data.get("PriorityTrial2"), {
-                label = "Trial Choice B",
-                values = availablePriorityOptions,
-                displayValues = priorityDisplayValues,
-                valueColors = priorityValueColors,
-                labelWidth = PRIORITY_LABEL_WIDTH,
-                controlWidth = 180,
-            })
+            DrawPriorityDropdown(draw, data, "PriorityTrial1", priorityTrial1Opts, availablePriorityOptions)
+            DrawPriorityDropdown(draw, data, "PriorityTrial2", priorityTrial2Opts, availablePriorityOptions)
         end
 
         imgui.Spacing()
