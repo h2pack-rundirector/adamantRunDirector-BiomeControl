@@ -6,7 +6,7 @@ local npcLogic
 local dreamLogic
 
 local function GetRunState(host, store)
-    local state = host.gameCache.currentRun.get("run", function()
+    local state = host.cache.currentRun.get("run", function()
         return {
             BiomePrioritySatisfied = {},
             ForcedNPCPending = {},
