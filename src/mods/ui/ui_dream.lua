@@ -67,12 +67,12 @@ local function BindDraw()
         return ""
     end
 
-    local function NormalizeRoute(data)
+    local function NormalizeRoute(state)
         local previous = nil
         local used = {}
 
         for slot, key in ipairs(ROUTE_KEYS) do
-            local field = data.get(key)
+            local field = state.get(key)
             local value = field:read()
             if not IsValidAtSlot(value, slot, previous, used) then
                 value = FirstValidValue(slot, previous, used)
@@ -93,27 +93,27 @@ local function BindDraw()
         return values
     end
 
-    function module.draw(draw, data)
-        NormalizeRoute(data)
+    function module.draw(draw, state)
+        NormalizeRoute(state)
 
         components.DrawSectionHeading(draw, "Dream Route", DREAM_ROUTE_HEADING_COLOR)
-        draw.widgets.checkbox(data.get("DreamRouteEnabled"), DREAM_ROUTE_ENABLED_OPTS)
+        draw.widgets.checkbox(state.get("DreamRouteEnabled"), DREAM_ROUTE_ENABLED_OPTS)
 
-        if data.get("DreamRouteEnabled"):read() ~= true then
+        if state.get("DreamRouteEnabled"):read() ~= true then
             return
         end
 
         local previous = nil
         local used = {}
         for slot, key in ipairs(ROUTE_KEYS) do
-            local field = data.get(key)
+            local field = state.get(key)
             local current = field:read()
             local opts = ROUTE_DROPDOWN_OPTS[slot]
             opts.values = BuildSlotValues(slot, previous, used, current)
             local changed = draw.widgets.dropdown(field, opts)
 
             if changed then
-                NormalizeRoute(data)
+                NormalizeRoute(state)
                 current = field:read()
             end
 

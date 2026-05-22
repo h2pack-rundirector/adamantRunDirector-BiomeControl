@@ -27,9 +27,9 @@ local function BuildRegionTabList(region)
     return tabs
 end
 
-local function DrawRegionTab(draw, data, region, tabAlias, childId)
+local function DrawRegionTab(draw, state, region, tabAlias, childId)
     local imgui = draw.imgui
-    local tabField = data.get(tabAlias)
+    local tabField = state.get(tabAlias)
     local navOpts = regionNavOpts[region]
     navOpts.activeKey = tabField:read()
     local activeTab = draw.nav.verticalTabs(navOpts)
@@ -39,36 +39,36 @@ local function DrawRegionTab(draw, data, region, tabAlias, childId)
 
     imgui.BeginChild(childId .. "Detail", 0, 0, false)
     if activeTab == "NPCs" then
-        npcUi.drawRegion(draw, data, region)
+        npcUi.drawRegion(draw, state, region)
     else
-        biomeUi.draw(draw, data, activeTab)
+        biomeUi.draw(draw, state, activeTab)
     end
     imgui.EndChild()
 end
 
-function module.drawTab(draw, data, _, services)
+function module.drawTab(draw, state, _, services)
     local imgui = draw.imgui
     if not imgui.BeginTabBar("BiomeControlLeanTabs") then
         return false
     end
 
     if imgui.BeginTabItem("Underworld") then
-        DrawRegionTab(draw, data, UNDERWORLD_REGION, UNDERWORLD_TAB_ALIAS, "BiomeControlUnderworld")
+        DrawRegionTab(draw, state, UNDERWORLD_REGION, UNDERWORLD_TAB_ALIAS, "BiomeControlUnderworld")
         imgui.EndTabItem()
     end
 
     if imgui.BeginTabItem("Surface") then
-        DrawRegionTab(draw, data, SURFACE_REGION, SURFACE_TAB_ALIAS, "BiomeControlSurface")
+        DrawRegionTab(draw, state, SURFACE_REGION, SURFACE_TAB_ALIAS, "BiomeControlSurface")
         imgui.EndTabItem()
     end
 
     if imgui.BeginTabItem("Dream") then
-        dreamUi.draw(draw, data)
+        dreamUi.draw(draw, state)
         imgui.EndTabItem()
     end
 
     if imgui.BeginTabItem("Settings") then
-        settingsUi.draw(draw, data, services)
+        settingsUi.draw(draw, state, services)
         imgui.EndTabItem()
     end
 
@@ -76,19 +76,19 @@ function module.drawTab(draw, data, _, services)
     return false
 end
 
-function module.drawQuickContent(draw, data)
+function module.drawQuickContent(draw, state)
     draw.widgets.confirmButton("biome_control_quick_reset_all", "Reset To Default", {
         confirmLabel = "Confirm Reset All",
         onConfirm = function()
-            data.resetToDefaults()
+            state.resetAll()
         end,
     })
 end
 
-function module.bind(data)
+function module.bind(state)
     local components = import("mods/ui/ui_components.lua")
-    definitions = data.definitions
-    catalog = data.catalog
+    definitions = state.definitions
+    catalog = state.catalog
     regionNavOpts = {
         [UNDERWORLD_REGION] = {
             id = "BiomeControlUnderworldTabs",

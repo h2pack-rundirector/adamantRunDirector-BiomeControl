@@ -3,9 +3,9 @@ local definitions
 local catalog
 local components
 
-function module.draw(draw, data)
-    local drewRooms = components.DrawRoomSection(draw, data, definitions, catalog, "F", components.SECTION_ROOMS)
-    local drewMinibosses = components.DrawRoomSection(draw, data, definitions, catalog, "F",
+function module.draw(draw, state)
+    local drewRooms = components.DrawRoomSection(draw, state, definitions, catalog, "F", components.SECTION_ROOMS)
+    local drewMinibosses = components.DrawRoomSection(draw, state, definitions, catalog, "F",
         components.SECTION_MINIBOSSES)
     return drewRooms or drewMinibosses
 end

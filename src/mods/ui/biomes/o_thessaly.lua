@@ -14,13 +14,13 @@ local function getThessalyRangeField()
     end
 end
 
-local function drawThessalyMinibossRow(draw, data)
+local function drawThessalyMinibossRow(draw, state)
     local imgui = draw.imgui
     local rangeColumnGap = 20
-    components.DrawModeRow(draw, data, catalog, "ThessalyMiniBossMode", nil, 200)
+    components.DrawModeRow(draw, state, catalog, "ThessalyMiniBossMode", nil, 200)
 
     local mode = catalog.GetModeValue(function(key)
-        return data.get(key):read()
+        return state.get(key):read()
     end, "ThessalyMiniBossMode")
     local rangeField = getThessalyRangeField()
     if rangeField and (mode == "charybdis" or mode == "captain") then
@@ -28,7 +28,7 @@ local function drawThessalyMinibossRow(draw, data)
         imgui.SetCursorPosX(imgui.GetCursorPosX() + rangeColumnGap)
         components.DrawRangeDropdowns(
             draw,
-            data,
+            state,
             rangeField.rangeMinAlias,
             rangeField.rangeMaxAlias,
             rangeField.min,
@@ -37,11 +37,11 @@ local function drawThessalyMinibossRow(draw, data)
     end
 end
 
-function module.draw(draw, data)
-    components.DrawRoomSection(draw, data, definitions, catalog, "O", thessalyRoomsSection)
+function module.draw(draw, state)
+    components.DrawRoomSection(draw, state, definitions, catalog, "O", thessalyRoomsSection)
 
     components.DrawSectionHeading(draw, components.SECTION_MINIBOSSES.label, components.SECTION_MINIBOSSES.color)
-    drawThessalyMinibossRow(draw, data)
+    drawThessalyMinibossRow(draw, state)
     return true
 end
 

@@ -85,10 +85,10 @@ local function GetRangeDropdownOpts(minValue, maxValue)
     return opts
 end
 
-function components.DrawRangeDropdowns(draw, data, minAlias, maxAlias, minValue, maxValue)
+function components.DrawRangeDropdowns(draw, state, minAlias, maxAlias, minValue, maxValue)
     local imgui = draw.imgui
-    local minField = data.get(minAlias)
-    local maxField = data.get(maxAlias)
+    local minField = state.get(minAlias)
+    local maxField = state.get(maxAlias)
     local opts = GetRangeDropdownOpts(minValue, maxValue)
 
     draw.widgets.text("from:", ALIGN_TO_FRAME_PADDING_OPTS)
@@ -151,11 +151,11 @@ local function GetModeRowDropdownOpts(catalog, alias, label, controlWidth)
     return opts
 end
 
-function components.DrawModeRow(draw, data, catalog, alias, label, controlWidth)
-    draw.widgets.dropdown(data.get(alias), GetModeRowDropdownOpts(catalog, alias, label, controlWidth))
+function components.DrawModeRow(draw, state, catalog, alias, label, controlWidth)
+    draw.widgets.dropdown(state.get(alias), GetModeRowDropdownOpts(catalog, alias, label, controlWidth))
 end
 
-function components.DrawCheckboxControl(draw, data, control)
+function components.DrawCheckboxControl(draw, state, control)
     local opts = checkboxOptsByAlias[control.alias]
     if not opts then
         opts = {
@@ -164,7 +164,7 @@ function components.DrawCheckboxControl(draw, data, control)
         }
         checkboxOptsByAlias[control.alias] = opts
     end
-    draw.widgets.checkbox(data.get(control.alias), opts)
+    draw.widgets.checkbox(state.get(control.alias), opts)
 end
 
 local function GetRoomModeDropdownOpts(definitions, def)
@@ -184,7 +184,7 @@ local function GetRoomModeDropdownOpts(definitions, def)
     return opts
 end
 
-function components.DrawRoomRow(draw, data, definitions, catalog, def)
+function components.DrawRoomRow(draw, state, definitions, catalog, def)
     local imgui = draw.imgui
     if not def then
         draw.widgets.text("Missing room definition", MUTED_TEXT_OPTS)
@@ -197,18 +197,18 @@ function components.DrawRoomRow(draw, data, definitions, catalog, def)
 
     components.DrawFixedLabel(draw, def.label, labelColumnX)
     imgui.SetCursorPosX(dropdownColumnX)
-    draw.widgets.dropdown(data.get(def.modeKey), GetRoomModeDropdownOpts(definitions, def))
+    draw.widgets.dropdown(state.get(def.modeKey), GetRoomModeDropdownOpts(definitions, def))
 
     if catalog.GetModeValue(function(key)
-        return data.get(key):read()
+        return state.get(key):read()
     end, def) == "forced" then
         imgui.SameLine()
         imgui.SetCursorPosX(rangeColumnX)
-        components.DrawRangeDropdowns(draw, data, def.rangeMinAlias, def.rangeMaxAlias, def.minDefault, def.maxDefault)
+        components.DrawRangeDropdowns(draw, state, def.rangeMinAlias, def.rangeMaxAlias, def.minDefault, def.maxDefault)
     end
 end
 
-function components.DrawRoomSection(draw, data, definitions, catalog, biomeKey, section)
+function components.DrawRoomSection(draw, state, definitions, catalog, biomeKey, section)
     local imgui = draw.imgui
     local drewSection = false
     local biomeDefinitions = catalog.biomeDefinitions and catalog.biomeDefinitions[biomeKey] or {}
@@ -219,7 +219,7 @@ function components.DrawRoomSection(draw, data, definitions, catalog, biomeKey, 
                 components.DrawSectionHeading(draw, section.label, section.color)
                 drewSection = true
             end
-            components.DrawRoomRow(draw, data, definitions, catalog, def)
+            components.DrawRoomRow(draw, state, definitions, catalog, def)
         end
     end
 

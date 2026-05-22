@@ -2,9 +2,9 @@ local module = {}
 local biomeUis = {}
 local components
 
-function module.draw(draw, data, biomeKey)
+function module.draw(draw, state, biomeKey)
     local biomeUi = biomeUis[biomeKey]
-    if biomeUi and biomeUi.draw(draw, data) then
+    if biomeUi and biomeUi.draw(draw, state) then
         return
     end
     components.DrawPlaceholder(draw, biomeKey)

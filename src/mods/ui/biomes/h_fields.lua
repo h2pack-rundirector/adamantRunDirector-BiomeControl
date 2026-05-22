@@ -5,9 +5,9 @@ local components
 
 local SPECIAL_HEADING_COLOR = { 1.0, 0.60, 0.28, 1.0 }
 
-function module.draw(draw, data)
+function module.draw(draw, state)
     local imgui = draw.imgui
-    components.DrawRoomSection(draw, data, definitions, catalog, "H", components.SECTION_MINIBOSSES)
+    components.DrawRoomSection(draw, state, definitions, catalog, "H", components.SECTION_MINIBOSSES)
 
     local specials = catalog.biomeSpecials.H or {}
     if #specials > 0 then
@@ -16,7 +16,7 @@ function module.draw(draw, data)
             if index > 1 then
                 imgui.Spacing()
             end
-            components.DrawCheckboxControl(draw, data, control)
+            components.DrawCheckboxControl(draw, state, control)
         end
     end
     return true

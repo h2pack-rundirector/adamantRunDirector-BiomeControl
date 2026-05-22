@@ -112,33 +112,33 @@ local function BindDraw()
         return values
     end
 
-    local function DrawPriorityDropdown(draw, data, alias, opts, values)
+    local function DrawPriorityDropdown(draw, state, alias, opts, values)
         opts.values = values
-        draw.widgets.dropdown(data.get(alias), opts)
+        draw.widgets.dropdown(state.get(alias), opts)
     end
 
-    function module.draw(draw, data, services)
+    function module.draw(draw, state, services)
         local imgui = draw.imgui
 
         components.DrawSectionHeading(draw, "Route Reward Priorities", ROUTE_REWARD_HEADING_COLOR)
-        draw.widgets.checkbox(data.get("PrioritizeSpecificRewardEnabled"), prioritizeSpecificRewardOpts)
+        draw.widgets.checkbox(state.get("PrioritizeSpecificRewardEnabled"), prioritizeSpecificRewardOpts)
 
-        if data.get("PrioritizeSpecificRewardEnabled"):read() == true then
+        if state.get("PrioritizeSpecificRewardEnabled"):read() == true then
             local availablePriorityOptions = BuildPriorityOptions(services)
-            DrawPriorityDropdown(draw, data, "PriorityBiome1", priorityBiome1Opts, availablePriorityOptions)
-            DrawPriorityDropdown(draw, data, "PriorityBiome2", priorityBiome2Opts, availablePriorityOptions)
-            DrawPriorityDropdown(draw, data, "PriorityBiome3", priorityBiome3Opts, availablePriorityOptions)
-            DrawPriorityDropdown(draw, data, "PriorityBiome4", priorityBiome4Opts, availablePriorityOptions)
+            DrawPriorityDropdown(draw, state, "PriorityBiome1", priorityBiome1Opts, availablePriorityOptions)
+            DrawPriorityDropdown(draw, state, "PriorityBiome2", priorityBiome2Opts, availablePriorityOptions)
+            DrawPriorityDropdown(draw, state, "PriorityBiome3", priorityBiome3Opts, availablePriorityOptions)
+            DrawPriorityDropdown(draw, state, "PriorityBiome4", priorityBiome4Opts, availablePriorityOptions)
         end
 
         imgui.Spacing()
         components.DrawSectionHeading(draw, "Trial Reward Priorities", TRIAL_REWARD_HEADING_COLOR)
-        draw.widgets.checkbox(data.get("PrioritizeTrialRewardEnabled"), prioritizeTrialRewardOpts)
+        draw.widgets.checkbox(state.get("PrioritizeTrialRewardEnabled"), prioritizeTrialRewardOpts)
 
-        if data.get("PrioritizeTrialRewardEnabled"):read() == true then
+        if state.get("PrioritizeTrialRewardEnabled"):read() == true then
             local availablePriorityOptions = BuildPriorityOptions(services)
-            DrawPriorityDropdown(draw, data, "PriorityTrial1", priorityTrial1Opts, availablePriorityOptions)
-            DrawPriorityDropdown(draw, data, "PriorityTrial2", priorityTrial2Opts, availablePriorityOptions)
+            DrawPriorityDropdown(draw, state, "PriorityTrial1", priorityTrial1Opts, availablePriorityOptions)
+            DrawPriorityDropdown(draw, state, "PriorityTrial2", priorityTrial2Opts, availablePriorityOptions)
         end
 
         imgui.Spacing()
@@ -147,7 +147,7 @@ local function BindDraw()
         draw.widgets.confirmButton("biome_control_reset_all_settings", "Reset All Controls", {
             confirmLabel = "Confirm Reset All",
             onConfirm = function()
-                data.resetToDefaults()
+                state.resetAll()
             end,
         })
     end

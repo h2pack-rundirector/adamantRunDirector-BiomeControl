@@ -92,9 +92,9 @@ local function BindDraw()
         return groups
     end
 
-    local function DrawNpcBiomeRow(draw, data, def)
+    local function DrawNpcBiomeRow(draw, state, def)
         local imgui = draw.imgui
-        local modeField = data.get(def.modeKey)
+        local modeField = state.get(def.modeKey)
         local labelColumnX = 36
         local dropdownColumnX = 160
         local rangeColumnX = 310
@@ -107,32 +107,32 @@ local function BindDraw()
         if modeField:read() == NPC_MODE_FORCED then
             imgui.SameLine()
             imgui.SetCursorPosX(rangeColumnX)
-            components.DrawRangeDropdowns(draw, data, def.rangeMinAlias, def.rangeMaxAlias, def.minDefault, def.maxDefault)
+            components.DrawRangeDropdowns(draw, state, def.rangeMinAlias, def.rangeMaxAlias, def.minDefault, def.maxDefault)
         end
         imgui.Unindent(16)
     end
 
-    local function DrawNpcGroup(draw, data, group)
+    local function DrawNpcGroup(draw, state, group)
         draw.widgets.text(group.label, NPC_GROUP_TEXT_OPTS[group.actualNPCName] or DEFAULT_NPC_GROUP_TEXT_OPTS)
         for _, def in ipairs(group.definitions or {}) do
-            DrawNpcBiomeRow(draw, data, def)
+            DrawNpcBiomeRow(draw, state, def)
         end
     end
 
-    local function DrawNpcRules(draw, data)
+    local function DrawNpcRules(draw, state)
         local imgui = draw.imgui
         imgui.Spacing()
         components.DrawSectionHeading(draw, "NPC Rules", NPC_RULES_HEADING_COLOR)
-        draw.widgets.checkbox(data.get("OnlyAllowForcedEncounters"), ONLY_ALLOW_FORCED_ENCOUNTERS_OPTS)
+        draw.widgets.checkbox(state.get("OnlyAllowForcedEncounters"), ONLY_ALLOW_FORCED_ENCOUNTERS_OPTS)
         draw.widgets.text("Blocks NPC encounters left on Default. Only Forced entries can appear.",
             NPC_RULE_HELP_TEXT_OPTS)
-        draw.widgets.checkbox(data.get("IgnoreMaxDepth"), IGNORE_MAX_DEPTH_OPTS)
+        draw.widgets.checkbox(state.get("IgnoreMaxDepth"), IGNORE_MAX_DEPTH_OPTS)
         draw.widgets.text("Forced NPC encounters can still appear after max depth.",
             NPC_RULE_HELP_TEXT_OPTS)
-        draw.widgets.dropdown(data.get("NPCSpacing"), NPC_SPACING_OPTS)
+        draw.widgets.dropdown(state.get("NPCSpacing"), NPC_SPACING_OPTS)
     end
 
-    function module.drawRegion(draw, data, region)
+    function module.drawRegion(draw, state, region)
         local imgui = draw.imgui
         components.DrawSectionHeading(draw, "NPCs", NPC_HEADING_COLOR)
         local drewAny = false
@@ -140,10 +140,10 @@ local function BindDraw()
             if drewAny then
                 imgui.Separator()
             end
-            DrawNpcGroup(draw, data, group)
+            DrawNpcGroup(draw, state, group)
             drewAny = true
         end
-        DrawNpcRules(draw, data)
+        DrawNpcRules(draw, state)
     end
 
     regionNpcGroups.Underworld = BuildRegionNpcGroups("Underworld")
