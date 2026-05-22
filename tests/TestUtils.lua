@@ -181,7 +181,9 @@ end
 local function refreshGodAvailabilityProvider(pluginGuid, godAvailability)
     local host = lib.createModule({
         pluginGuid = pluginGuid .. ":god-availability-provider",
-        config = {},
+        config = {
+            Enabled = not godAvailability or godAvailability.active ~= false,
+        },
         modpack = "run-director",
         id = "TestGodPoolProvider",
         name = "Test God Pool Provider",
@@ -191,17 +193,21 @@ local function refreshGodAvailabilityProvider(pluginGuid, godAvailability)
     if godAvailability then
         host.integrations.register("run-director.god-availability", {
             providerId = "TestGodPool",
-            api = {
-                isActive = function()
-                    return godAvailability.active ~= false
-                end,
-                isAvailable = function(godKey)
-                    local available = godAvailability.available or {}
-                    if available[godKey] ~= nil then
-                        return available[godKey]
-                    end
-                    return true
-                end,
+            methods = {
+                isActive = {
+                    handler = function()
+                        return true
+                    end,
+                },
+                isAvailable = {
+                    handler = function(_, godKey)
+                        local available = godAvailability.available or {}
+                        if available[godKey] ~= nil then
+                            return available[godKey]
+                        end
+                        return true
+                    end,
+                },
             },
         })
     end
