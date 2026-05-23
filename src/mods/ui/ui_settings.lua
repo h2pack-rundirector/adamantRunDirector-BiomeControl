@@ -1,10 +1,10 @@
 local module = {}
 local definitions
 local components
+local godAvailability
 
 local function BindDraw()
     local PRIORITY_LABEL_WIDTH = 160
-    local GOD_AVAILABILITY_INTEGRATION = "run-director.god-availability"
     local ROUTE_REWARD_HEADING_COLOR = { 0.90, 0.82, 0.56, 1.0 }
     local TRIAL_REWARD_HEADING_COLOR = { 0.70, 0.84, 0.96, 1.0 }
     local priorityOptions = { "" }
@@ -82,7 +82,7 @@ local function BindDraw()
     end
 
     local function IsGodPoolFilteringActive(services)
-        return services.invokeIntegration(GOD_AVAILABILITY_INTEGRATION, "isActive", false) == true
+        return godAvailability.isActive(services)
     end
 
     local function IsPriorityLootAvailable(services, lootKey)
@@ -95,7 +95,7 @@ local function BindDraw()
             return true
         end
 
-        return services.invokeIntegration(GOD_AVAILABILITY_INTEGRATION, "isAvailable", true, godKey) ~= false
+        return godAvailability.isAvailable(services, godKey)
     end
 
     local function BuildPriorityOptions(services)
@@ -156,6 +156,7 @@ end
 function module.bind(deps)
     definitions = deps.definitions
     components = deps.components
+    godAvailability = deps.godAvailability
     BindDraw()
     return module
 end

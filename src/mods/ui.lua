@@ -119,6 +119,7 @@ function module.bind(state)
     settingsUi = import("mods/ui/ui_settings.lua").bind({
         definitions = definitions,
         components = components,
+        godAvailability = state.godAvailability,
     })
     return module
 end

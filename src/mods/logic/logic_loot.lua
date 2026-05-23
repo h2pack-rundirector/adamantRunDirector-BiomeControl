@@ -2,10 +2,9 @@ local module = {}
 local definitions
 local GetRunState
 local CreateStoreReader
+local godAvailability
 
 local function BindLogic()
-    local GOD_AVAILABILITY_INTEGRATION = "run-director.god-availability"
-
     local priorityGodByLootKey = {}
 
     for _, god in ipairs(definitions.priorityGods or {}) do
@@ -22,7 +21,7 @@ local function BindLogic()
             return true
         end
 
-        return host.integrations.invoke(GOD_AVAILABILITY_INTEGRATION, "isAvailable", true, godKey) ~= false
+        return godAvailability.isAvailable(host, godKey)
     end
 
     local function AvailablePriorityKey(host, lootKey)
@@ -112,6 +111,7 @@ function module.bind(deps)
     definitions = deps.definitions
     GetRunState = deps.GetRunState
     CreateStoreReader = deps.CreateStoreReader
+    godAvailability = deps.godAvailability
     BindLogic()
     return module
 end

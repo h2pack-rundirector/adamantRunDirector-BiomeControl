@@ -191,9 +191,21 @@ local function refreshGodAvailabilityProvider(pluginGuid, godAvailability)
     })
 
     if godAvailability then
-        host.integrations.register("run-director.god-availability", {
+        local function snapshot()
+            return {
+                active = godAvailability.active ~= false,
+                available = godAvailability.available or {},
+            }
+        end
+
+        host.integrations.provide("run-director.god-availability", {
             providerId = "TestGodPool",
             methods = {
+                snapshot = {
+                    handler = function()
+                        return snapshot()
+                    end,
+                },
                 isActive = {
                     handler = function()
                         return true
@@ -209,10 +221,19 @@ local function refreshGodAvailabilityProvider(pluginGuid, godAvailability)
                     end,
                 },
             },
+            events = {
+                availabilityChanged = true,
+            },
         })
     end
 
     host.activate()
+    if godAvailability then
+        host.integrations.emit("run-director.god-availability", "availabilityChanged", {
+            active = godAvailability.active ~= false,
+            available = godAvailability.available or {},
+        })
+    end
 end
 
 function ResetBiomeControlHarness(opts)
@@ -222,6 +243,8 @@ function ResetBiomeControlHarness(opts)
     installBaseGlobals(opts)
 
     local data = dofile("src/mods/data.lua")
+    local godAvailability = dofile("src/mods/integrations/god_availability.lua").create()
+    data.godAvailability = godAvailability
     local hashGroups = import("mods/hash_groups.lua").bind(data)
     local logic = import("mods/logic.lua").bind(data)
 
@@ -242,7 +265,9 @@ function ResetBiomeControlHarness(opts)
     if opts.registerHooks then
         logic.registerHooks(host, store)
     end
+    godAvailability.listen(host)
     host.activate()
+    godAvailability.refresh(host)
     refreshGodAvailabilityProvider(pluginGuid, opts.godAvailability)
 
     local liveHost = lib.createFrameworkRuntime("adamant-ModpackFramework").modules.getLiveHost(pluginGuid)

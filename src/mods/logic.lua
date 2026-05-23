@@ -73,6 +73,7 @@ function logic.bind(data)
         definitions = data.definitions,
         GetRunState = GetRunState,
         CreateStoreReader = CreateStoreReader,
+        godAvailability = data.godAvailability,
     }
     biomeLogic = import("mods/logic/logic_biome.lua").bind(logicDeps)
     lootLogic = import("mods/logic/logic_loot.lua").bind(logicDeps)
