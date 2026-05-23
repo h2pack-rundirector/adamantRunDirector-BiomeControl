@@ -65,6 +65,9 @@ local function BindDraw()
         labelWidth = PRIORITY_LABEL_WIDTH,
         controlWidth = 180,
     }
+    local resetAllSettingsOpts = {
+        confirmLabel = "Confirm Reset All",
+    }
 
     for _, god in ipairs(definitions.priorityGods or {}) do
         priorityOptions[#priorityOptions + 1] = god.lootKey
@@ -117,7 +120,7 @@ local function BindDraw()
         draw.widgets.dropdown(state.get(alias), opts)
     end
 
-    function module.draw(draw, state, services)
+    function module.draw(draw, state, actions, services)
         local imgui = draw.imgui
 
         components.DrawSectionHeading(draw, "Route Reward Priorities", ROUTE_REWARD_HEADING_COLOR)
@@ -144,12 +147,8 @@ local function BindDraw()
         imgui.Spacing()
         draw.widgets.separator()
         imgui.Spacing()
-        draw.widgets.confirmButton("biome_control_reset_all_settings", "Reset All Controls", {
-            confirmLabel = "Confirm Reset All",
-            onConfirm = function()
-                state.resetAll()
-            end,
-        })
+        resetAllSettingsOpts.action = actions.get("resetAll")
+        draw.widgets.confirmButton("biome_control_reset_all_settings", "Reset All Controls", resetAllSettingsOpts)
     end
 end
 

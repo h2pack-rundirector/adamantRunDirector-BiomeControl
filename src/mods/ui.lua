@@ -12,6 +12,10 @@ local SURFACE_REGION = "Surface"
 local UNDERWORLD_TAB_ALIAS = "UnderworldTab"
 local SURFACE_TAB_ALIAS = "SurfaceTab"
 
+local QUICK_RESET_ALL_CONFIRM_OPTS = {
+    confirmLabel = "Confirm Reset All",
+}
+
 local function BuildRegionTabList(region)
     local tabs = {
         { key = "NPCs", label = "NPCs" },
@@ -46,7 +50,7 @@ local function DrawRegionTab(draw, state, region, tabAlias, childId)
     imgui.EndChild()
 end
 
-function module.drawTab(draw, state, _, services)
+function module.drawTab(draw, state, actions, services)
     local imgui = draw.imgui
     if not imgui.BeginTabBar("BiomeControlLeanTabs") then
         return false
@@ -68,7 +72,7 @@ function module.drawTab(draw, state, _, services)
     end
 
     if imgui.BeginTabItem("Settings") then
-        settingsUi.draw(draw, state, services)
+        settingsUi.draw(draw, state, actions, services)
         imgui.EndTabItem()
     end
 
@@ -76,13 +80,9 @@ function module.drawTab(draw, state, _, services)
     return false
 end
 
-function module.drawQuickContent(draw, state)
-    draw.widgets.confirmButton("biome_control_quick_reset_all", "Reset To Default", {
-        confirmLabel = "Confirm Reset All",
-        onConfirm = function()
-            state.resetAll()
-        end,
-    })
+function module.drawQuickContent(draw, _, actions)
+    QUICK_RESET_ALL_CONFIRM_OPTS.action = actions.get("resetAll")
+    draw.widgets.confirmButton("biome_control_quick_reset_all", "Reset To Default", QUICK_RESET_ALL_CONFIRM_OPTS)
 end
 
 function module.bind(state)

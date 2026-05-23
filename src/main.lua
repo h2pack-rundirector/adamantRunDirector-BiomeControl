@@ -35,6 +35,11 @@ local function init()
         name = "Biome Control",
         tooltip = "Control biome rooms, NPC encounters, rewards, and biome-specific tweaks.",
         storage = data.storage.build(),
+        actions = {
+            resetAll = function(state)
+                state.resetAll()
+            end,
+        },
         hashGroupPlan = hashGroups.buildHashGroupPlan(),
         drawTab = ui.drawTab,
         drawQuickContent = ui.drawQuickContent,
