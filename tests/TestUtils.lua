@@ -178,7 +178,7 @@ local function applyOverrides(target, overrides)
     end
 end
 
-local function refreshGodAvailabilityProvider(pluginGuid, godAvailability)
+local function publishGodAvailability(pluginGuid, godAvailability)
     local host = lib.createModule({
         pluginGuid = pluginGuid .. ":god-availability-provider",
         config = {
@@ -191,45 +191,17 @@ local function refreshGodAvailabilityProvider(pluginGuid, godAvailability)
     })
 
     if godAvailability then
-        local function snapshot()
-            return {
-                active = godAvailability.active ~= false,
-                available = godAvailability.available or {},
-            }
-        end
-
-        host.integrations.provide("run-director.god-availability", {
-            providerId = "TestGodPool",
-            methods = {
-                snapshot = {
-                    handler = function()
-                        return snapshot()
-                    end,
-                },
-                isActive = {
-                    handler = function()
-                        return true
-                    end,
-                },
-                isAvailable = {
-                    handler = function(_, godKey)
-                        local available = godAvailability.available or {}
-                        if available[godKey] ~= nil then
-                            return available[godKey]
-                        end
-                        return true
-                    end,
-                },
-            },
-            events = {
-                availabilityChanged = true,
+        host.cache.shared.publish("run-director.god-availability", {
+            default = {
+                active = false,
+                available = {},
             },
         })
     end
 
     host.activate()
     if godAvailability then
-        host.integrations.emit("run-director.god-availability", "availabilityChanged", {
+        host.cache.shared.write("run-director.god-availability", {
             active = godAvailability.active ~= false,
             available = godAvailability.available or {},
         })
@@ -243,7 +215,7 @@ function ResetBiomeControlHarness(opts)
     installBaseGlobals(opts)
 
     local data = dofile("src/mods/data.lua")
-    local godAvailability = dofile("src/mods/integrations/god_availability.lua").create()
+    local godAvailability = dofile("src/mods/cache/god_availability.lua").create()
     data.godAvailability = godAvailability
     local hashGroups = import("mods/hash_groups.lua").bind(data)
     local logic = import("mods/logic.lua").bind(data)
@@ -265,10 +237,8 @@ function ResetBiomeControlHarness(opts)
     if opts.registerHooks then
         logic.registerHooks(host, store)
     end
-    godAvailability.listen(host)
     host.activate()
-    godAvailability.refresh(host)
-    refreshGodAvailabilityProvider(pluginGuid, opts.godAvailability)
+    publishGodAvailability(pluginGuid, opts.godAvailability)
 
     local liveHost = lib.createFrameworkRuntime("adamant-ModpackFramework").modules.getLiveHost(pluginGuid)
 
