@@ -18,6 +18,17 @@ local PACK_ID = "run-director"
 local MODULE_ID = "BiomeControl"
 local PLUGIN_GUID = _PLUGIN.guid
 
+local function MergeDeclarations(...)
+    local result = {}
+    for index = 1, select("#", ...) do
+        local source = select(index, ...)
+        for key, declaration in pairs(source or {}) do
+            result[key] = declaration
+        end
+    end
+    return result
+end
+
 local function init()
     import_as_fallback(rom.game)
     local data = import("mods/data.lua")
@@ -35,8 +46,12 @@ local function init()
         name = "Biome Control",
         tooltip = "Control biome rooms, NPC encounters, rewards, and biome-specific tweaks.",
         storage = data.storage.build(),
+        cache = MergeDeclarations(
+            logic.buildCacheDeclarations(),
+            godAvailability.buildCacheDeclarations()
+        ),
         actions = {
-            resetAll = function(state)
+            resetAll = function(_, state)
                 state.resetAll()
             end,
         },

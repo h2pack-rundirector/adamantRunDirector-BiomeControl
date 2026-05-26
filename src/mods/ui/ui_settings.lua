@@ -84,11 +84,11 @@ local function BindDraw()
         end
     end
 
-    local function IsGodPoolFilteringActive(services)
-        return godAvailability.isActive(services)
+    local function IsGodPoolFilteringActive(state)
+        return godAvailability.isActive(state)
     end
 
-    local function IsPriorityLootAvailable(services, lootKey)
+    local function IsPriorityLootAvailable(state, lootKey)
         if lootKey == "" then
             return true
         end
@@ -98,17 +98,17 @@ local function BindDraw()
             return true
         end
 
-        return godAvailability.isAvailable(services, godKey)
+        return godAvailability.isAvailable(state, godKey)
     end
 
-    local function BuildPriorityOptions(services)
-        if not IsGodPoolFilteringActive(services) then
+    local function BuildPriorityOptions(state)
+        if not IsGodPoolFilteringActive(state) then
             return priorityOptions
         end
 
         local values = {}
         for _, value in ipairs(priorityOptions) do
-            if IsPriorityLootAvailable(services, value) then
+            if IsPriorityLootAvailable(state, value) then
                 values[#values + 1] = value
             end
         end
@@ -120,14 +120,14 @@ local function BindDraw()
         draw.widgets.dropdown(state.get(alias), opts)
     end
 
-    function module.draw(draw, state, actions, services)
+    function module.draw(draw, state, actions, _)
         local imgui = draw.imgui
 
         components.DrawSectionHeading(draw, "Route Reward Priorities", ROUTE_REWARD_HEADING_COLOR)
         draw.widgets.checkbox(state.get("PrioritizeSpecificRewardEnabled"), prioritizeSpecificRewardOpts)
 
         if state.get("PrioritizeSpecificRewardEnabled"):read() == true then
-            local availablePriorityOptions = BuildPriorityOptions(services)
+            local availablePriorityOptions = BuildPriorityOptions(state)
             DrawPriorityDropdown(draw, state, "PriorityBiome1", priorityBiome1Opts, availablePriorityOptions)
             DrawPriorityDropdown(draw, state, "PriorityBiome2", priorityBiome2Opts, availablePriorityOptions)
             DrawPriorityDropdown(draw, state, "PriorityBiome3", priorityBiome3Opts, availablePriorityOptions)
@@ -139,7 +139,7 @@ local function BindDraw()
         draw.widgets.checkbox(state.get("PrioritizeTrialRewardEnabled"), prioritizeTrialRewardOpts)
 
         if state.get("PrioritizeTrialRewardEnabled"):read() == true then
-            local availablePriorityOptions = BuildPriorityOptions(services)
+            local availablePriorityOptions = BuildPriorityOptions(state)
             DrawPriorityDropdown(draw, state, "PriorityTrial1", priorityTrial1Opts, availablePriorityOptions)
             DrawPriorityDropdown(draw, state, "PriorityTrial2", priorityTrial2Opts, availablePriorityOptions)
         end

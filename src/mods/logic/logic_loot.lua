@@ -11,7 +11,7 @@ local function BindLogic()
         priorityGodByLootKey[god.lootKey] = god.label
     end
 
-    local function IsPriorityLootAvailable(host, lootKey)
+    local function IsPriorityLootAvailable(store, lootKey)
         if lootKey == "" then
             return true
         end
@@ -21,29 +21,29 @@ local function BindLogic()
             return true
         end
 
-        return godAvailability.isAvailable(host, godKey)
+        return godAvailability.isAvailable(store, godKey)
     end
 
-    local function AvailablePriorityKey(host, lootKey)
+    local function AvailablePriorityKey(store, lootKey)
         lootKey = lootKey or ""
-        if lootKey ~= "" and not IsPriorityLootAvailable(host, lootKey) then
+        if lootKey ~= "" and not IsPriorityLootAvailable(store, lootKey) then
             return ""
         end
         return lootKey
     end
 
-    local function PriorityKeyForBiome(host, read, biomeIndex)
+    local function PriorityKeyForBiome(store, read, biomeIndex)
         biomeIndex = math.max((biomeIndex or 0) - 1, 0)
-        if biomeIndex == 0 then return AvailablePriorityKey(host, read("PriorityBiome1")) end
-        if biomeIndex == 1 then return AvailablePriorityKey(host, read("PriorityBiome2")) end
-        if biomeIndex == 2 then return AvailablePriorityKey(host, read("PriorityBiome3")) end
-        if biomeIndex == 3 then return AvailablePriorityKey(host, read("PriorityBiome4")) end
+        if biomeIndex == 0 then return AvailablePriorityKey(store, read("PriorityBiome1")) end
+        if biomeIndex == 1 then return AvailablePriorityKey(store, read("PriorityBiome2")) end
+        if biomeIndex == 2 then return AvailablePriorityKey(store, read("PriorityBiome3")) end
+        if biomeIndex == 3 then return AvailablePriorityKey(store, read("PriorityBiome4")) end
         return ""
     end
 
-    local function PriorityKeyForTrial(host, read, trialIndex)
-        if trialIndex == 1 then return AvailablePriorityKey(host, read("PriorityTrial1")) end
-        if trialIndex == 2 then return AvailablePriorityKey(host, read("PriorityTrial2")) end
+    local function PriorityKeyForTrial(store, read, trialIndex)
+        if trialIndex == 1 then return AvailablePriorityKey(store, read("PriorityTrial1")) end
+        if trialIndex == 2 then return AvailablePriorityKey(store, read("PriorityTrial2")) end
         return ""
     end
 
@@ -53,13 +53,13 @@ local function BindLogic()
         host.hooks.wrap("GetEligibleLootNames", function(base, excludeLootNames)
             if not host.isEnabled() then return base(excludeLootNames) end
 
-            local state = GetRunState(host, store)
+            local state = GetRunState(store)
             if not state then return base(excludeLootNames) end
             state.BiomePrioritySatisfied = state.BiomePrioritySatisfied or {}
 
             local eligible = base(excludeLootNames)
             local currentBiomeIndex = CurrentRun and CurrentRun.ClearedBiomes or 0
-            local priorityLootKey = PriorityKeyForBiome(host, read, currentBiomeIndex)
+            local priorityLootKey = PriorityKeyForBiome(store, read, currentBiomeIndex)
             local isPriorityMode = read("PrioritizeSpecificRewardEnabled") and priorityLootKey ~= "" and
                 not state.BiomePrioritySatisfied[currentBiomeIndex]
 
@@ -73,13 +73,13 @@ local function BindLogic()
         host.hooks.wrap("GiveLoot", function(base, args)
             if not host.isEnabled() then return base(args) end
 
-            local state = GetRunState(host, store)
+            local state = GetRunState(store)
             if not state then return base(args) end
 
             local result = base(args)
             local currentBiomeIndex = CurrentRun and CurrentRun.ClearedBiomes or 0
             local lootName = args and (args.ForceLootName or args.Name)
-            if read("PrioritizeSpecificRewardEnabled") and lootName == PriorityKeyForBiome(host, read, currentBiomeIndex) then
+            if read("PrioritizeSpecificRewardEnabled") and lootName == PriorityKeyForBiome(store, read, currentBiomeIndex) then
                 state.BiomePrioritySatisfied[currentBiomeIndex] = true
             end
             return result
@@ -93,8 +93,8 @@ local function BindLogic()
             if chosenRewardType ~= "Devotion" or not room or not room.Encounter then return end
             if not read("PrioritizeTrialRewardEnabled") then return end
 
-            local prioA = PriorityKeyForTrial(host, read, 1)
-            local prioB = PriorityKeyForTrial(host, read, 2)
+            local prioA = PriorityKeyForTrial(store, read, 1)
+            local prioB = PriorityKeyForTrial(store, read, 2)
             local interacted = GetInteractedGodsThisRun() or {}
             if prioA ~= "" and prioB ~= "" and prioA ~= prioB and
                 Contains(interacted, prioA) and Contains(interacted, prioB) and

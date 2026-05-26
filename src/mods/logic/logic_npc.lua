@@ -32,7 +32,7 @@ local function BindLogic()
             local legalEncounters = args.LegalEncounters or room.LegalEncounters
             if not legalEncounters then return base(currentRun, room, args) end
 
-            local state = GetRunState(host, store)
+            local state = GetRunState(store)
             if not state then return base(currentRun, room, args) end
 
             local currentRoomSet = room and room.RoomSetName
@@ -125,7 +125,7 @@ local function BindLogic()
         for _, npcName in ipairs(npcPriorityList) do
             host.hooks.wrap("Begin" .. npcName .. "Encounter", function(base, currentRun, room, args)
                 if host.isEnabled() then
-                    local state = GetRunState(host, store)
+                    local state = GetRunState(store)
                     if state then
                         state.NPCEncounterSeen[npcName] = true
                     end

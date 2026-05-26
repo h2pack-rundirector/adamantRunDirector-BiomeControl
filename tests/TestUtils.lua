@@ -183,8 +183,34 @@ local function applyOverrides(target, overrides)
     end
 end
 
+local function mergeDeclarations(...)
+    local result = {}
+    for index = 1, select("#", ...) do
+        local source = select(index, ...)
+        for key, declaration in pairs(source or {}) do
+            result[key] = declaration
+        end
+    end
+    return result
+end
+
 local function publishGodAvailability(pluginGuid, godAvailability)
-    local host = lib.createModule({
+    local cacheDeclaration = nil
+    if godAvailability then
+        cacheDeclaration = {
+            GodAvailability = {
+                domain = "shared",
+                id = "run-director.god-availability",
+                access = "owner",
+                default = {
+                    active = false,
+                    available = {},
+                },
+            },
+        }
+    end
+
+    local host, store = lib.createModule({
         pluginGuid = pluginGuid .. ":god-availability-provider",
         config = {
             Enabled = not godAvailability or godAvailability.active ~= false,
@@ -192,23 +218,19 @@ local function publishGodAvailability(pluginGuid, godAvailability)
         modpack = "run-director",
         id = "TestGodPoolProvider",
         name = "Test God Pool Provider",
+        cache = cacheDeclaration,
         drawTab = function() end,
     })
 
-    if godAvailability then
-        host.cache.shared.publish("run-director.god-availability", {
-            default = {
-                active = false,
-                available = {},
-            },
-        })
-    end
-
     host.activate()
     if godAvailability then
-        host.cache.shared.write("run-director.god-availability", {
+        local available = {}
+        for godKey, value in pairs(godAvailability.available or {}) do
+            available[godKey] = value ~= false
+        end
+        store.cache.shared.set("GodAvailability", {
             active = godAvailability.active ~= false,
-            available = godAvailability.available or {},
+            available = available,
         })
     end
 end
@@ -235,6 +257,10 @@ function ResetBiomeControlHarness(opts)
         id = "BiomeControl",
         name = "Biome Control",
         storage = data.storage.build(),
+        cache = mergeDeclarations(
+            logic.buildCacheDeclarations(),
+            godAvailability.buildCacheDeclarations()
+        ),
         hashGroupPlan = hashGroups.buildHashGroupPlan(),
         drawTab = function() end,
     })
