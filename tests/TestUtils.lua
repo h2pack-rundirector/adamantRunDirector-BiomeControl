@@ -183,33 +183,7 @@ local function applyOverrides(target, overrides)
     end
 end
 
-local function mergeDeclarations(...)
-    local result = {}
-    for index = 1, select("#", ...) do
-        local source = select(index, ...)
-        for key, declaration in pairs(source or {}) do
-            result[key] = declaration
-        end
-    end
-    return result
-end
-
 local function publishGodAvailability(pluginGuid, godAvailability)
-    local cacheDeclaration = nil
-    if godAvailability then
-        cacheDeclaration = {
-            GodAvailability = {
-                domain = "shared",
-                id = "run-director.god-availability",
-                access = "owner",
-                default = {
-                    active = false,
-                    available = {},
-                },
-            },
-        }
-    end
-
     local host, store = lib.createModule({
         pluginGuid = pluginGuid .. ":god-availability-provider",
         config = {
@@ -218,17 +192,25 @@ local function publishGodAvailability(pluginGuid, godAvailability)
         modpack = "run-director",
         id = "TestGodPoolProvider",
         name = "Test God Pool Provider",
-        cache = cacheDeclaration,
         drawTab = function() end,
     })
 
+    if godAvailability then
+        host.shared.data.owner("GodAvailability", {
+            id = "run-director.god-availability",
+            default = {
+                active = false,
+                available = {},
+            },
+        })
+    end
     host.activate()
     if godAvailability then
         local available = {}
         for godKey, value in pairs(godAvailability.available or {}) do
             available[godKey] = value ~= false
         end
-        store.cache.shared.set("GodAvailability", {
+        store.shared.set("GodAvailability", {
             active = godAvailability.active ~= false,
             available = available,
         })
@@ -257,14 +239,12 @@ function ResetBiomeControlHarness(opts)
         id = "BiomeControl",
         name = "Biome Control",
         storage = data.storage.build(),
-        cache = mergeDeclarations(
-            logic.buildCacheDeclarations(),
-            godAvailability.buildCacheDeclarations()
-        ),
+        cache = logic.buildCacheDeclarations(),
         hashGroupPlan = hashGroups.buildHashGroupPlan(),
         drawTab = function() end,
     })
     host.mutation.patch(logic.buildPatchPlan)
+    godAvailability.registerShared(host)
     if opts.registerHooks then
         logic.registerHooks(host, store)
     end

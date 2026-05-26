@@ -50,7 +50,7 @@ local function DrawRegionTab(draw, state, region, tabAlias, childId)
     imgui.EndChild()
 end
 
-function module.drawTab(draw, state, actions, services)
+function module.drawTab(draw, state, actions)
     local imgui = draw.imgui
     if not imgui.BeginTabBar("BiomeControlLeanTabs") then
         return false
@@ -72,7 +72,7 @@ function module.drawTab(draw, state, actions, services)
     end
 
     if imgui.BeginTabItem("Settings") then
-        settingsUi.draw(draw, state, actions, services)
+        settingsUi.draw(draw, state, actions)
         imgui.EndTabItem()
     end
 

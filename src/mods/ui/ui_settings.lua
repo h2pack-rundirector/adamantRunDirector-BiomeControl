@@ -120,7 +120,7 @@ local function BindDraw()
         draw.widgets.dropdown(state.get(alias), opts)
     end
 
-    function module.draw(draw, state, actions, _)
+    function module.draw(draw, state, actions)
         local imgui = draw.imgui
 
         components.DrawSectionHeading(draw, "Route Reward Priorities", ROUTE_REWARD_HEADING_COLOR)
