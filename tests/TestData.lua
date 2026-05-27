@@ -60,6 +60,7 @@ function TestBiomeControlData:testExtensionControlsAreAggregatedIntoCatalogSurfa
 
     lu.assertNotNil(getField(controls.stateFields, "PreventEchoScam"))
     lu.assertNotNil(getField(controls.stateFields, "ReplaceHermesInEphyra"))
+    lu.assertNil(getField(controls.stateFields, "PackedBannedEphyraSubRoomRewards"))
     lu.assertNotNil(data.catalog.modeEntryLookup.EphyraMiniBossMode)
     lu.assertNotNil(data.catalog.modeEntryLookup.ThessalyMiniBossMode)
     lu.assertEquals(controls.biomeSpecials.H[1].alias, "PreventEchoScam")

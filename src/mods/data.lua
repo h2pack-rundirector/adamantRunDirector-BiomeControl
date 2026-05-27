@@ -3,11 +3,16 @@ local data = {}
 local definitions = import("mods/data/definitions.lua")
 local biomeLoader = import("mods/data/biomes.lua")
 local catalog = import("mods/data/catalog.lua")
-local storage = import("mods/data/storage.lua")
+local baseStorage = import("mods/data/base_storage.lua")
 local biomeRegistry = biomeLoader.load()
 
+local function appendNodes(target, nodes)
+    for _, node in ipairs(nodes or {}) do
+        target[#target + 1] = node
+    end
+end
+
 local catalogModel = catalog.create({
-    definitions = definitions,
     biomes = biomeRegistry,
     defaults = {
         roomModeValues = definitions.roomModeValues,
@@ -20,7 +25,9 @@ data.catalog = catalogModel
 
 data.storage = {}
 function data.storage.build()
-    return storage.build(data)
+    local nodes = baseStorage.build()
+    appendNodes(nodes, catalogModel.storageNodes)
+    return nodes
 end
 
 return data

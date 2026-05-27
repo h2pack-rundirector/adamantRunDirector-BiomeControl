@@ -52,8 +52,6 @@ return {
     controls = {
         stateFields = {
             { type = "dropdown", alias = "ReplaceHermesInEphyra", label = "Hub Hermes Replacement", default = "" },
-            { type = "int", alias = "PackedBannedEphyraSubRoomRewards", default = 0 },
-            { type = "int", alias = "PackedBannedEphyraSubRoomRewardsHard", default = 0 },
         },
         rooms = {
             {

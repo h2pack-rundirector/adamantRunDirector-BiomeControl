@@ -1,23 +1,63 @@
 local hashGroups = {}
 local catalog
 
-local function getRoomDef(id, biome)
-    return catalog.roomLookup
-        and catalog.roomLookup[id]
-        and catalog.roomLookup[id][biome]
+local function getNewRoomDef(id, biome)
+    local biomeDef = catalog.biomes and catalog.biomes[biome]
+    if not biomeDef then
+        return nil
+    end
+    return (biomeDef.rooms and biomeDef.rooms[id])
+        or (biomeDef.minibosses and biomeDef.minibosses[id])
         or nil
 end
 
+local function getRoomDef(id, biome)
+    if catalog.roomLookup then
+        return catalog.roomLookup[id] and catalog.roomLookup[id][biome] or nil
+    end
+    return getNewRoomDef(id, biome)
+end
+
+local function getNewNpcDef(id, biome)
+    local npcs = catalog.npcs
+    if not npcs then
+        return nil
+    end
+
+    for _, groupKey in ipairs(npcs.orderedIds or {}) do
+        local group = npcs[groupKey]
+        if group and group.actualNPCName == id then
+            local def = group.lookup and group.lookup[biome] or nil
+            if def then
+                return def
+            end
+        end
+    end
+end
+
 local function getNpcDef(id, biome)
-    return catalog.npcLookup
-        and catalog.npcLookup[id]
-        and catalog.npcLookup[id][biome]
-        or nil
+    if catalog.npcLookup then
+        return catalog.npcLookup[id] and catalog.npcLookup[id][biome] or nil
+    end
+    return getNewNpcDef(id, biome)
 end
 
 local function getRangedControlAliases(def)
     if not def then
         return nil
+    end
+
+    local bindings = def.controller and def.controller.bindings
+    if bindings then
+        local aliases = {}
+        if bindings.mode then
+            aliases[#aliases + 1] = bindings.mode.alias
+        end
+        if bindings.range then
+            aliases[#aliases + 1] = bindings.range.minAlias
+            aliases[#aliases + 1] = bindings.range.maxAlias
+        end
+        return aliases
     end
 
     return {
