@@ -183,8 +183,16 @@ local function applyOverrides(target, overrides)
     end
 end
 
+local function getLiveStore(liveHost)
+    local registry = AdamantModpackLib_Runtime and AdamantModpackLib_Runtime.registry
+    local modules = registry and registry.modules
+    local records = modules and modules.records
+    local record = records and records[liveHost]
+    return record and record.store or nil
+end
+
 local function publishGodAvailability(pluginGuid, godAvailability)
-    local host, store = lib.createModule({
+    local module = lib.createModule({
         pluginGuid = pluginGuid .. ":god-availability-provider",
         config = {
             Enabled = not godAvailability or godAvailability.active ~= false,
@@ -192,29 +200,23 @@ local function publishGodAvailability(pluginGuid, godAvailability)
         modpack = "run-director",
         id = "TestGodPoolProvider",
         name = "Test God Pool Provider",
-        drawTab = function() end,
     })
 
-    if godAvailability then
-        host.shared.data.owner("GodAvailability", {
-            id = "run-director.god-availability",
-            default = {
-                active = false,
-                available = {},
-            },
-        })
-    end
-    host.activate()
     if godAvailability then
         local available = {}
         for godKey, value in pairs(godAvailability.available or {}) do
             available[godKey] = value ~= false
         end
-        store.shared.set("GodAvailability", {
-            active = godAvailability.active ~= false,
-            available = available,
+        module.shared.data.owner("GodAvailability", {
+            id = "run-director.god-availability",
+            default = {
+                active = godAvailability.active ~= false,
+                available = available,
+            },
         })
     end
+    module.ui.tab(function() end)
+    module.activate()
 end
 
 function ResetBiomeControlHarness(opts)
@@ -232,26 +234,27 @@ function ResetBiomeControlHarness(opts)
     local config = dofile("src/config.lua")
     applyOverrides(config, opts.config)
 
-    local host, store = lib.createModule({
+    local module = lib.createModule({
         pluginGuid = pluginGuid,
         config = config,
         modpack = "run-director",
         id = "BiomeControl",
         name = "Biome Control",
-        storage = data.storage.build(),
-        cache = logic.buildCacheDeclarations(),
-        hashGroupPlan = hashGroups.buildHashGroupPlan(),
-        drawTab = function() end,
     })
-    host.mutation.patch(logic.buildPatchPlan)
-    godAvailability.registerShared(host)
+    module.data.define(data.storage.build())
+    module.cache.define(logic.buildCacheDeclarations())
+    module.hashGroups.define(hashGroups.buildHashGroupPlan())
+    module.ui.tab(function() end)
+    module.mutation.patch(logic.buildPatchPlan)
+    godAvailability.registerShared(module)
     if opts.registerHooks then
-        logic.registerHooks(host, store)
+        logic.registerHooks(module)
     end
-    host.activate()
+    module.activate()
     publishGodAvailability(pluginGuid, opts.godAvailability)
 
     local liveHost = lib.createFrameworkRuntime("adamant-ModpackFramework").modules.getLiveHost(pluginGuid)
+    local store = getLiveStore(liveHost)
 
     return {
         data = data,

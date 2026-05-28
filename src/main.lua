@@ -27,36 +27,37 @@ local function init()
     local logic = import("mods/logic.lua").bind(data)
     local ui = import("mods/ui.lua").bind(data)
 
-    local host, store = lib.createModule({
+    local module = lib.createModule({
         pluginGuid = PLUGIN_GUID,
         config = config,
         modpack = PACK_ID,
         id = MODULE_ID,
         name = "Biome Control",
         tooltip = "Control biome rooms, NPC encounters, rewards, and biome-specific tweaks.",
-        storage = data.storage.build(),
-        cache = logic.buildCacheDeclarations(),
-        actions = {
-            resetAll = function(_, state)
-                state.resetAll()
-            end,
-        },
-        hashGroupPlan = hashGroups.buildHashGroupPlan(),
-        drawTab = ui.drawTab,
-        drawQuickContent = ui.drawQuickContent,
     })
-    if not host then
+    if not module then
         return
     end
 
-    host.fallbackUi.attachGuiOnce(function(fallbackUi)
+    module.data.define(data.storage.build())
+    module.cache.define(logic.buildCacheDeclarations())
+    module.actions.define({
+        resetAll = function(host, uiData)
+            uiData.resetAll()
+        end,
+    })
+    module.hashGroups.define(hashGroups.buildHashGroupPlan())
+    module.ui.tab(ui.drawTab)
+    module.ui.quickContent(ui.drawQuickContent)
+
+    module.fallbackUi.attachGuiOnce(function(fallbackUi)
         rom.gui.add_imgui(fallbackUi.renderWindow)
         rom.gui.add_to_menu_bar(fallbackUi.addMenuBar)
     end)
-    host.mutation.patch(logic.buildPatchPlan)
-    godAvailability.registerShared(host)
-    logic.registerHooks(host, store)
-    local ok = host.activate()
+    module.mutation.patch(logic.buildPatchPlan)
+    godAvailability.registerShared(module)
+    logic.registerHooks(module)
+    local ok = module.activate()
     if not ok then
         return
     end

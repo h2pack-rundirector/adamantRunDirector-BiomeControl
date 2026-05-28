@@ -50,7 +50,10 @@ local function DrawRegionTab(draw, state, region, tabAlias, childId)
     imgui.EndChild()
 end
 
-function module.drawTab(draw, state, actions)
+function module.drawTab(_, ui)
+    local draw = ui.draw
+    local state = ui.data
+    local actions = ui.actions
     local imgui = draw.imgui
     if not imgui.BeginTabBar("BiomeControlLeanTabs") then
         return false
@@ -80,7 +83,9 @@ function module.drawTab(draw, state, actions)
     return false
 end
 
-function module.drawQuickContent(draw, _, actions)
+function module.drawQuickContent(_, ui)
+    local draw = ui.draw
+    local actions = ui.actions
     QUICK_RESET_ALL_CONFIRM_OPTS.action = actions.get("resetAll")
     draw.widgets.confirmButton("biome_control_quick_reset_all", "Reset To Default", QUICK_RESET_ALL_CONFIRM_OPTS)
 end
