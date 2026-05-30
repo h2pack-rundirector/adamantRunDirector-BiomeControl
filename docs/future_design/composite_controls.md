@@ -10,7 +10,7 @@ Control-heavy immediate-mode UI has three related needs:
 - UI needs repeated draw patterns.
 - Runtime logic needs semantic read helpers.
 
-The current prototype uses controller objects as the shared representation for all three. That works, but it also means controller objects are threaded through storage building, UI drawing, runtime logic, hash groups, and tests.
+The current prototype uses controller objects as the shared representation for all three. That works, but it also means controller objects are threaded through storage building, UI drawing, runtime logic, and tests.
 
 ## Direction
 

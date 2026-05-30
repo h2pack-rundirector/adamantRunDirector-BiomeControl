@@ -406,6 +406,13 @@ function PackedSet.prepare(instance)
         }
     end
     instance.bits = bits
+    instance.width = 0
+    for _, bit in ipairs(bits) do
+        local used = bit.offset + bit.width
+        if used > instance.width then
+            instance.width = used
+        end
+    end
     instance.default = instance.default or 0
     instance.labelOpts = {
         tooltip = instance.helpText,
@@ -422,6 +429,7 @@ function PackedSet.storage(instance)
             key = "Value",
             type = "packedInt",
             default = instance.default,
+            width = instance.width,
             bits = instance.bits,
         },
     }

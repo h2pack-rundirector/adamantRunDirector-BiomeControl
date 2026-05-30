@@ -41,10 +41,18 @@ function storageNodes.appendPackedReward(target, reward)
             default = false,
         }
     end
+    local width = 0
+    for _, bit in ipairs(bits) do
+        local used = bit.offset + bit.width
+        if used > width then
+            width = used
+        end
+    end
     target[#target + 1] = {
         type = "packedInt",
         alias = alias,
         default = 0,
+        width = width,
         bits = bits,
     }
 end
