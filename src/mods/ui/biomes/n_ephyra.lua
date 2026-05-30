@@ -1,91 +1,53 @@
+local deps = ...
 local module = {}
-local definitions
-local catalog
-local components
-local rewardControlOptsByAlias
-local rewardLabelOptsByAlias
-local rewardPackedOptsByAlias
+local catalog = deps.catalog
+local components = deps.components
 
-local REWARDS_HEADING_COLOR = { 0.70, 0.84, 0.96, 1.0 }
+local ROOM_COLOR = { 0.90, 0.82, 0.56, 1.0 }
+local MINIBOSS_COLOR = { 0.88, 0.38, 0.32, 1.0 }
+local REWARDS_COLOR = { 0.70, 0.84, 0.96, 1.0 }
 
-local function getRewardControl(kindOrAlias)
-    for _, control in ipairs(catalog.biomeRewards.N or {}) do
-        if control.kind == kindOrAlias or control.alias == kindOrAlias then
-            return control
-        end
-    end
+local STORY_MODE_OPTS = {
+    labelWidth = 160,
+    controlWidth = 150,
+}
+
+local MINIBOSS_MODE_OPTS = {
+    labelWidth = 160,
+    controlWidth = 250,
+}
+
+local REWARD_DROPDOWN_OPTS = {
+    labelWidth = 160,
+    controlWidth = 180,
+}
+
+local function drawRewardList(ui, setting)
+    ui.draw.imgui.Spacing()
+    components.DrawSetting(ui, setting)
 end
 
-local function drawHubReplacement(draw, state, control)
-    if not control then return end
-
-    draw.widgets.dropdown(state.get(control.alias), rewardControlOptsByAlias[control.alias])
-end
-
-local function drawPackedRewardList(draw, state, control)
-    if not control then return end
-
-    draw.imgui.Spacing()
-    draw.widgets.text(control.label, rewardLabelOptsByAlias[control.alias])
-    draw.widgets.packedCheckboxList(state.get(control.alias), rewardPackedOptsByAlias[control.alias])
-end
-
-local function drawEphyraRewards(draw, state)
-    components.DrawSectionHeading(draw, "Rewards", REWARDS_HEADING_COLOR)
-    drawHubReplacement(draw, state, getRewardControl("field"))
-    drawPackedRewardList(draw, state, getRewardControl("PackedBannedEphyraSubRoomRewards"))
-    drawPackedRewardList(draw, state, getRewardControl("PackedBannedEphyraSubRoomRewardsHard"))
-end
-
-function module.draw(draw, state)
+function module.draw(ui)
+    local draw = ui.draw
+    local biome = catalog.biomes.N
+    local controls = biome.controls
     local imgui = draw.imgui
-    components.DrawSectionHeading(draw, components.SECTION_ROOMS.label, components.SECTION_ROOMS.color)
-    components.DrawModeRow(draw, state, catalog, "EphyraStoryMode", nil, 150)
+
+    components.DrawSectionHeading(draw, "Rooms", ROOM_COLOR)
+    components.DrawSetting(ui, controls.EphyraStoryMode.setting, STORY_MODE_OPTS)
 
     imgui.Spacing()
-    components.DrawSectionHeading(draw, components.SECTION_MINIBOSSES.label, components.SECTION_MINIBOSSES.color)
-    components.DrawModeRow(draw, state, catalog, "EphyraMiniBossMode", nil, 250)
+
+    components.DrawSectionHeading(draw, "Minibosses", MINIBOSS_COLOR)
+    components.DrawSetting(ui, controls.EphyraMiniBossMode.setting, MINIBOSS_MODE_OPTS)
 
     imgui.Spacing()
-    drawEphyraRewards(draw, state)
+
+    components.DrawSectionHeading(draw, "Rewards", REWARDS_COLOR)
+    components.DrawSetting(ui, controls.ReplaceHermesInEphyra.setting, REWARD_DROPDOWN_OPTS)
+    drawRewardList(ui, controls.PackedBannedEphyraSubRoomRewards.setting)
+    drawRewardList(ui, controls.PackedBannedEphyraSubRoomRewardsHard.setting)
     return true
-end
-
-function module.bind(deps)
-    definitions = deps.definitions
-    catalog = deps.catalog
-    components = deps.components
-    local hubRewardReplacementOptions = { "" }
-    local hubRewardReplacementDisplayValues = {
-        [""] = "Hermes (Default)",
-    }
-    for _, god in ipairs(definitions.priorityGods or {}) do
-        hubRewardReplacementOptions[#hubRewardReplacementOptions + 1] = god.lootKey
-        hubRewardReplacementDisplayValues[god.lootKey] = god.label
-    end
-
-    rewardControlOptsByAlias = {}
-    rewardLabelOptsByAlias = {}
-    rewardPackedOptsByAlias = {}
-    for _, control in ipairs(catalog.biomeRewards.N or {}) do
-        if control.kind == "field" then
-            rewardControlOptsByAlias[control.alias] = {
-                label = control.label or "Hub Hermes Replacement",
-                tooltip = control.helpText,
-                values = hubRewardReplacementOptions,
-                displayValues = hubRewardReplacementDisplayValues,
-                labelWidth = 160,
-                controlWidth = 180,
-            }
-        end
-        rewardLabelOptsByAlias[control.alias] = {
-            tooltip = control.helpText,
-        }
-        rewardPackedOptsByAlias[control.alias] = {
-            slotCount = #(control.options or {}),
-        }
-    end
-    return module
 end
 
 return module

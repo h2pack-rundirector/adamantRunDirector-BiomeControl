@@ -1,89 +1,77 @@
+local deps = ...
 local module = {}
-local definitions
-local catalog
-local CreateStoreReader
+local definitions = deps.definitions
+local catalog = deps.catalog
 
-local function BindLogic()
-    local ROUTE_KEYS = {
-        "DreamRouteBiome1",
-        "DreamRouteBiome2",
-        "DreamRouteBiome3",
-        "DreamRouteBiome4",
-    }
+local ROUTE_KEYS = {
+    "DreamRouteBiome1",
+    "DreamRouteBiome2",
+    "DreamRouteBiome3",
+    "DreamRouteBiome4",
+}
 
-    local function IsKnownBiome(value)
-        return catalog.biomeMap[value] ~= nil
+local function isKnownBiome(value)
+    return catalog.biomes[value] ~= nil
+end
+
+local function isValidRoute(route)
+    local used = {}
+
+    for index, biome in ipairs(route) do
+        if not isKnownBiome(biome) then return false end
+        if index == 1 and (biome == "F" or biome == "N") then return false end
+        if used[biome] then return false end
+        if index > 1 and definitions.dreamNaturalNextBiome[route[index - 1]] == biome then return false end
+        used[biome] = true
     end
 
-    local function IsValidRoute(route)
-        local used = {}
+    return #route == 4
+end
 
-        for index, biome in ipairs(route) do
-            if not IsKnownBiome(biome) then return false end
-            if index == 1 and (biome == "F" or biome == "N") then return false end
-            if used[biome] then return false end
-            if index > 1 and definitions.dreamNaturalNextBiome[route[index - 1]] == biome then return false end
-            used[biome] = true
-        end
+local function getConfiguredRoute(store)
+    if store.read("DreamRouteEnabled") ~= true then return nil end
 
-        return #route == 4
+    local route = {}
+    for _, key in ipairs(ROUTE_KEYS) do
+        route[#route + 1] = store.read(key)
     end
 
-    local function GetConfiguredRoute(read)
-        if read("DreamRouteEnabled") ~= true then return nil end
-
-        local route = {}
-        for _, key in ipairs(ROUTE_KEYS) do
-            route[#route + 1] = read(key)
-        end
-
-        if not IsValidRoute(route) then
-            return nil
-        end
-        return route
+    if not isValidRoute(route) then
+        return nil
     end
+    return route
+end
 
-    local function UpdateDreamBiomePool(route, slot)
-        CurrentRun.DreamBiomePool = {}
-        for index = slot + 1, #route do
-            CurrentRun.DreamBiomePool[#CurrentRun.DreamBiomePool + 1] = route[index]
-        end
-    end
-
-    function module.registerHooks(host, store)
-        local read = CreateStoreReader(store)
-
-        host.hooks.wrap("SelectNextDreamBiome", function(base, currentRoomSet)
-            if not host.isEnabled() then return base(currentRoomSet) end
-            if not CurrentRun or not CurrentRun.IsDreamRun or not CurrentRun.CurrentRoom then
-                return base(currentRoomSet)
-            end
-
-            local route = GetConfiguredRoute(read)
-            if not route then return base(currentRoomSet) end
-
-            local slot = (CurrentRun.EnteredBiomes or 0) + 1
-            local nextRoomSet = route[slot]
-            if not nextRoomSet then return base(currentRoomSet) end
-            if currentRoomSet and definitions.dreamNaturalNextBiome[currentRoomSet] == nextRoomSet then
-                return base(currentRoomSet)
-            end
-
-            CurrentRun.CurrentRoom.NextRoomSet = { nextRoomSet }
-            if slot == 1 then
-                GameState.LastDreamStartingBiome = nextRoomSet
-            end
-            UpdateDreamBiomePool(route, slot)
-        end)
+local function updateDreamBiomePool(route, slot)
+    CurrentRun.DreamBiomePool = {}
+    for index = slot + 1, #route do
+        CurrentRun.DreamBiomePool[#CurrentRun.DreamBiomePool + 1] = route[index]
     end
 end
 
-function module.bind(deps)
-    definitions = deps.definitions
-    catalog = deps.catalog
-    CreateStoreReader = deps.CreateStoreReader
-    BindLogic()
-    return module
+function module.registerHooks(moduleRef)
+    moduleRef.hooks.wrap("SelectNextDreamBiome", function(host, runtime, base, currentRoomSet)
+        if not host.isEnabled() then return base(currentRoomSet) end
+        if not CurrentRun or not CurrentRun.IsDreamRun or not CurrentRun.CurrentRoom then
+            return base(currentRoomSet)
+        end
+
+        local route = getConfiguredRoute(runtime.data)
+        if not route then return base(currentRoomSet) end
+
+        local slot = (CurrentRun.EnteredBiomes or 0) + 1
+        local nextRoomSet = route[slot]
+        if not nextRoomSet then return base(currentRoomSet) end
+        if currentRoomSet and definitions.dreamNaturalNextBiome[currentRoomSet] == nextRoomSet then
+            return base(currentRoomSet)
+        end
+
+        CurrentRun.CurrentRoom.NextRoomSet = { nextRoomSet }
+        if slot == 1 then
+            GameState.LastDreamStartingBiome = nextRoomSet
+        end
+        updateDreamBiomePool(route, slot)
+    end)
 end
 
 return module

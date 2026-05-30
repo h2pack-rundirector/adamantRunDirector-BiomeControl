@@ -4,11 +4,9 @@ TestBiomeControlLogic = {}
 
 function TestBiomeControlLogic:testPatchPlanAppliesAndRevertsRoomAndNpcMutations()
     local harness = ResetBiomeControlHarness({
-        config = {
-            ModeStoryArachne = 2,
-            PackedStoryArachneMin = 5,
-            PackedStoryArachneMax = 7,
-            ModeMiniBossTreant = 1,
+        controls = {
+            StoryArachne = { mode = "forced", min = 5, max = 7 },
+            MiniBossTreant = { mode = "disabled" },
             NPCSpacing = 9,
             PreventEchoScam = true,
         },
@@ -41,10 +39,8 @@ end
 
 function TestBiomeControlLogic:testForcedErebusTrialInjectsDevotionReward()
     local harness = ResetBiomeControlHarness({
-        config = {
-            ModeTrialErebus = 2,
-            PackedTrialErebusMin = 7,
-            PackedTrialErebusMax = 9,
+        controls = {
+            TrialErebus = { mode = "forced", min = 7, max = 9 },
         },
         RoomSetData = {
             F = {
@@ -63,10 +59,8 @@ end
 
 function TestBiomeControlLogic:testForcedOceanusTrialInjectsDevotionReward()
     local harness = ResetBiomeControlHarness({
-        config = {
-            ModeTrialOceanus = 2,
-            PackedTrialOceanusMin = 4,
-            PackedTrialOceanusMax = 6,
+        controls = {
+            TrialOceanus = { mode = "forced", min = 4, max = 6 },
         },
         RoomSetData = {
             G = {
@@ -88,8 +82,10 @@ function TestBiomeControlLogic:testBiomePriorityFiltersEligibleLootUntilSatisfie
         registerHooks = true,
         config = {
             Enabled = true,
-            PrioritizeSpecificRewardEnabled = true,
             PriorityBiome1 = "ApolloUpgrade",
+        },
+        controls = {
+            PrioritizeSpecificRewardEnabled = true,
         },
         CurrentRun = {
             ClearedBiomes = 0,
@@ -110,8 +106,10 @@ function TestBiomeControlLogic:testBiomePriorityIgnoresGodPoolDisabledChoice()
         registerHooks = true,
         config = {
             Enabled = true,
-            PrioritizeSpecificRewardEnabled = true,
             PriorityBiome1 = "ApolloUpgrade",
+        },
+        controls = {
+            PrioritizeSpecificRewardEnabled = true,
         },
         godAvailability = {
             available = {
@@ -134,9 +132,11 @@ function TestBiomeControlLogic:testTrialRewardPrioritySetsEncounterLootPair()
         registerHooks = true,
         config = {
             Enabled = true,
-            PrioritizeTrialRewardEnabled = true,
             PriorityTrial1 = "ApolloUpgrade",
             PriorityTrial2 = "ZeusUpgrade",
+        },
+        controls = {
+            PrioritizeTrialRewardEnabled = true,
         },
         CurrentRun = {},
         GetInteractedGodsThisRun = function()
@@ -165,9 +165,11 @@ function TestBiomeControlLogic:testTrialRewardPrioritySkipsGodPoolDisabledChoice
         registerHooks = true,
         config = {
             Enabled = true,
-            PrioritizeTrialRewardEnabled = true,
             PriorityTrial1 = "ApolloUpgrade",
             PriorityTrial2 = "ZeusUpgrade",
+        },
+        controls = {
+            PrioritizeTrialRewardEnabled = true,
         },
         godAvailability = {
             available = {
@@ -201,9 +203,9 @@ function TestBiomeControlLogic:testForcedNpcEncounterNarrowsLegalEncounterList()
         registerHooks = true,
         config = {
             Enabled = true,
-            ModeNPCArtemisErebus = 2,
-            PackedNPCArtemisErebusMin = 4,
-            PackedNPCArtemisErebusMax = 10,
+        },
+        controls = {
+            NPCArtemisErebus = { mode = "forced", min = 4, max = 10 },
         },
         CurrentRun = {},
         ChooseEncounter = function(_, _, args)
@@ -231,6 +233,8 @@ function TestBiomeControlLogic:testOnlyAllowForcedEncountersFiltersUnforcedNpcEn
         registerHooks = true,
         config = {
             Enabled = true,
+        },
+        controls = {
             OnlyAllowForcedEncounters = true,
         },
         CurrentRun = {},
@@ -260,6 +264,8 @@ function TestBiomeControlLogic:testFieldsTwoRewardHookOverridesEarlyCombatRooms(
         registerHooks = true,
         config = {
             Enabled = true,
+        },
+        controls = {
             ForceTwoRewardFieldsOpeners = true,
         },
     })
@@ -276,7 +282,7 @@ end
 
 function TestBiomeControlLogic:testEphyraLogicReplacesHermesAndFiltersSubroomRewards()
     local harness = ResetBiomeControlHarness({
-        config = {
+        controls = {
             ReplaceHermesInEphyra = "ApolloUpgrade",
             PackedBannedEphyraSubRoomRewards = bit32.lshift(1, 0),
             PackedBannedEphyraSubRoomRewardsHard = bit32.lshift(1, 2),
@@ -316,10 +322,8 @@ end
 
 function TestBiomeControlLogic:testThessalyLogicForcesSelectedMiniboss()
     local harness = ResetBiomeControlHarness({
-        config = {
-            ThessalyMiniBossMode = 1,
-            PackedForcedThessalyMiniBossMin = 3,
-            PackedForcedThessalyMiniBossMax = 5,
+        controls = {
+            ThessalyMiniBossMode = { mode = "charybdis", min = 3, max = 5 },
         },
         RoomData = {
             O_MiniBoss01 = {

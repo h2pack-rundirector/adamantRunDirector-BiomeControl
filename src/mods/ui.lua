@@ -1,11 +1,7 @@
+local deps = ...
 local module = {}
-local definitions = nil
-local catalog = nil
-local biomeUi = nil
-local npcUi = nil
-local dreamUi = nil
-local settingsUi = nil
-local regionNavOpts = nil
+local definitions = deps.definitions
+local catalog = deps.catalog
 
 local UNDERWORLD_REGION = "Underworld"
 local SURFACE_REGION = "Surface"
@@ -16,11 +12,11 @@ local QUICK_RESET_ALL_CONFIRM_OPTS = {
     confirmLabel = "Confirm Reset All",
 }
 
-local function BuildRegionTabList(region)
+local function buildRegionTabList(region)
     local tabs = {
         { key = "NPCs", label = "NPCs" },
     }
-    for _, biome in ipairs(catalog.biomeTabs or {}) do
+    for _, biome in ipairs(catalog.biomes.ordered or {}) do
         if biome.region == region then
             tabs[#tabs + 1] = {
                 key = biome.key,
@@ -31,7 +27,41 @@ local function BuildRegionTabList(region)
     return tabs
 end
 
-local function DrawRegionTab(draw, state, region, tabAlias, childId)
+local components = import("mods/ui/components.lua")
+local regionNavOpts = {
+    [UNDERWORLD_REGION] = {
+        id = "BiomeControlControllerUnderworldTabs",
+        navWidth = 220,
+        tabs = buildRegionTabList(UNDERWORLD_REGION),
+    },
+    [SURFACE_REGION] = {
+        id = "BiomeControlControllerSurfaceTabs",
+        navWidth = 220,
+        tabs = buildRegionTabList(SURFACE_REGION),
+    },
+}
+local biomeUi = import("mods/ui/ui_biome.lua", nil, {
+    catalog = catalog,
+    components = components,
+})
+local npcUi = import("mods/ui/ui_npc.lua", nil, {
+    catalog = catalog,
+    components = components,
+})
+local dreamUi = import("mods/ui/ui_dream.lua", nil, {
+    definitions = definitions,
+    catalog = catalog,
+    components = components,
+})
+local settingsUi = import("mods/ui/ui_settings.lua", nil, {
+    definitions = definitions,
+    components = components,
+    godAvailability = deps.godAvailability,
+})
+
+local function drawRegionTab(ui, region, tabAlias, childId)
+    local draw = ui.draw
+    local state = ui.data
     local imgui = draw.imgui
     local tabField = state.get(tabAlias)
     local navOpts = regionNavOpts[region]
@@ -43,39 +73,37 @@ local function DrawRegionTab(draw, state, region, tabAlias, childId)
 
     imgui.BeginChild(childId .. "Detail", 0, 0, false)
     if activeTab == "NPCs" then
-        npcUi.drawRegion(draw, state, region)
+        npcUi.drawRegion(ui, region)
     else
-        biomeUi.draw(draw, state, activeTab)
+        biomeUi.draw(ui, activeTab)
     end
     imgui.EndChild()
 end
 
 function module.drawTab(_, ui)
     local draw = ui.draw
-    local state = ui.data
-    local actions = ui.actions
     local imgui = draw.imgui
-    if not imgui.BeginTabBar("BiomeControlLeanTabs") then
+    if not imgui.BeginTabBar("BiomeControlControllerTabs") then
         return false
     end
 
     if imgui.BeginTabItem("Underworld") then
-        DrawRegionTab(draw, state, UNDERWORLD_REGION, UNDERWORLD_TAB_ALIAS, "BiomeControlUnderworld")
+        drawRegionTab(ui, UNDERWORLD_REGION, UNDERWORLD_TAB_ALIAS, "BiomeControlControllerUnderworld")
         imgui.EndTabItem()
     end
 
     if imgui.BeginTabItem("Surface") then
-        DrawRegionTab(draw, state, SURFACE_REGION, SURFACE_TAB_ALIAS, "BiomeControlSurface")
+        drawRegionTab(ui, SURFACE_REGION, SURFACE_TAB_ALIAS, "BiomeControlControllerSurface")
         imgui.EndTabItem()
     end
 
     if imgui.BeginTabItem("Dream") then
-        dreamUi.draw(draw, state)
+        dreamUi.draw(ui)
         imgui.EndTabItem()
     end
 
     if imgui.BeginTabItem("Settings") then
-        settingsUi.draw(draw, state, actions)
+        settingsUi.draw(ui)
         imgui.EndTabItem()
     end
 
@@ -84,49 +112,8 @@ function module.drawTab(_, ui)
 end
 
 function module.drawQuickContent(_, ui)
-    local draw = ui.draw
-    local actions = ui.actions
-    QUICK_RESET_ALL_CONFIRM_OPTS.action = actions.get("resetAll")
-    draw.widgets.confirmButton("biome_control_quick_reset_all", "Reset To Default", QUICK_RESET_ALL_CONFIRM_OPTS)
-end
-
-function module.bind(state)
-    local components = import("mods/ui/ui_components.lua")
-    definitions = state.definitions
-    catalog = state.catalog
-    regionNavOpts = {
-        [UNDERWORLD_REGION] = {
-            id = "BiomeControlUnderworldTabs",
-            navWidth = 220,
-            tabs = BuildRegionTabList(UNDERWORLD_REGION),
-        },
-        [SURFACE_REGION] = {
-            id = "BiomeControlSurfaceTabs",
-            navWidth = 220,
-            tabs = BuildRegionTabList(SURFACE_REGION),
-        },
-    }
-    biomeUi = import("mods/ui/ui_biome.lua").bind({
-        definitions = definitions,
-        catalog = catalog,
-        components = components,
-    })
-    npcUi = import("mods/ui/ui_npc.lua").bind({
-        definitions = definitions,
-        catalog = catalog,
-        components = components,
-    })
-    dreamUi = import("mods/ui/ui_dream.lua").bind({
-        definitions = definitions,
-        catalog = catalog,
-        components = components,
-    })
-    settingsUi = import("mods/ui/ui_settings.lua").bind({
-        definitions = definitions,
-        components = components,
-        godAvailability = state.godAvailability,
-    })
-    return module
+    QUICK_RESET_ALL_CONFIRM_OPTS.action = ui.actions.get("resetAll")
+    ui.draw.widgets.confirmButton("biome_control_quick_reset_all", "Reset To Default", QUICK_RESET_ALL_CONFIRM_OPTS)
 end
 
 return module

@@ -1,13 +1,5 @@
 local definitions = {}
 
-definitions.DEFAULT_FIELD_MEDIUM = 0.4
-definitions.REGION_UNDERWORLD = 1
-definitions.REGION_SURFACE = 2
-definitions.REGION_OPTIONS = {
-    { label = "Underworld", value = definitions.REGION_UNDERWORLD },
-    { label = "Surface", value = definitions.REGION_SURFACE },
-}
-
 definitions.roomModeValues = { "default", "disabled", "forced" }
 definitions.roomModeDisplayValues = {
     default = "Default",

@@ -1,3 +1,9 @@
+local deps = ...
+local builder = deps.builder
+local catalog = deps.catalog
+local settings = deps.settings
+local definitions = deps.definitions
+
 local EPHYRA_STORY_MODE_OPTIONS = { "default", "disabled", "forced" }
 local EPHYRA_STORY_MODE_DISPLAY = {
     default = "Default",
@@ -39,62 +45,87 @@ local subRoomRewardsHardOptions = {
     { bit = 3, label = "Money",         name = "RoomMoneyDrop" },
 }
 
-return {
+local function buildHubRewardReplacementOptions()
+    local values = { "" }
+    local displayValues = {
+        [""] = "Hermes (Default)",
+    }
+
+    for _, god in ipairs(definitions.priorityGods or {}) do
+        values[#values + 1] = god.lootKey
+        displayValues[god.lootKey] = god.label
+    end
+
+    return values, displayValues
+end
+
+local definition = {
     key = "N",
     label = "Ephyra",
     region = "Surface",
     logic = "mods/logic/biomes/n_ephyra.lua",
     ui = "mods/ui/biomes/n_ephyra.lua",
-    npcs = {
-        { id = "Artemis", groupKey = "ArtemisSurface", min = 4, max = 10 },
-        { id = "Heracles", min = 0, max = 10 },
-    },
-    controls = {
-        stateFields = {
-            { type = "dropdown", alias = "ReplaceHermesInEphyra", label = "Hub Hermes Replacement", default = "" },
-        },
-        rooms = {
-            {
-                kind = "modeField",
-                label = "Story",
-                roomGroup = "Story",
-                modeKey = "EphyraStoryMode",
-                modeValues = EPHYRA_STORY_MODE_OPTIONS,
-                modeDisplayValues = EPHYRA_STORY_MODE_DISPLAY,
-                defaultMode = "default",
-                helpText = "(Default lets the game decide, Forced guarantees Medea when normally eligible, Disabled suppresses it)",
-            },
-            {
-                kind = "modeField",
-                label = "Miniboss",
-                roomGroup = "MiniBoss",
-                modeKey = "EphyraMiniBossMode",
-                modeValues = EPHYRA_MINIBOSS_MODE_OPTIONS,
-                modeDisplayValues = EPHYRA_MINIBOSS_MODE_DISPLAY,
-                defaultMode = "default",
-                helpText = "(Choose which Ephyra miniboss can appear, or disable both)",
-            },
-        },
-        rewards = {
-            {
-                kind = "field",
-                alias = "ReplaceHermesInEphyra",
-                helpText = "(Replace the Hermes slot in Ephyra HubRewards with another god or remove it)",
-            },
-            {
-                kind = "packedCheckboxes",
-                alias = "PackedBannedEphyraSubRoomRewards",
-                label = "SubRoomRewards",
-                options = subRoomRewardOptions,
-                helpText = "(Checked rewards are banned from normal Ephyra subroom reward pools)",
-            },
-            {
-                kind = "packedCheckboxes",
-                alias = "PackedBannedEphyraSubRoomRewardsHard",
-                label = "SubRoomRewardsHard",
-                options = subRoomRewardsHardOptions,
-                helpText = "(Checked rewards are banned from hard Ephyra subroom reward pools)",
-            },
-        },
-    },
 }
+
+local npc = builder.npc(definition)
+local hubRewardReplacementValues, hubRewardReplacementDisplayValues = buildHubRewardReplacementOptions()
+
+local rooms = catalog.rooms({})
+
+local npcs = catalog.npcs({
+    npc("Artemis", {
+        groupKey = "ArtemisSurface",
+        setting = settings.modeWithRange("NPCArtemisEphyra", {
+            min = 4,
+            max = 10,
+        }),
+    }),
+    npc("Heracles", {
+        setting = settings.modeWithRange("NPCHeraclesEphyra", {
+            min = 0,
+            max = 10,
+        }),
+    }),
+})
+
+local controls = catalog.controls({
+    settings.mode("EphyraStoryMode", {
+        label = "Story",
+        values = EPHYRA_STORY_MODE_OPTIONS,
+        displayValues = EPHYRA_STORY_MODE_DISPLAY,
+        default = "default",
+        helpText = "(Default lets the game decide, Forced guarantees Medea when normally eligible, Disabled suppresses it)",
+    }),
+    settings.mode("EphyraMiniBossMode", {
+        label = "Miniboss",
+        values = EPHYRA_MINIBOSS_MODE_OPTIONS,
+        displayValues = EPHYRA_MINIBOSS_MODE_DISPLAY,
+        default = "default",
+        helpText = "(Choose which Ephyra miniboss can appear, or disable both)",
+    }),
+    settings.choice("ReplaceHermesInEphyra", {
+        label = "Hub Hermes Replacement",
+        type = "string",
+        values = hubRewardReplacementValues,
+        displayValues = hubRewardReplacementDisplayValues,
+        default = "",
+        maxLen = 64,
+        helpText = "(Replace the Hermes slot in Ephyra HubRewards with another god or remove it)",
+    }),
+    settings.packedSet("PackedBannedEphyraSubRoomRewards", {
+        label = "SubRoomRewards",
+        options = subRoomRewardOptions,
+        helpText = "(Checked rewards are banned from normal Ephyra subroom reward pools)",
+    }),
+    settings.packedSet("PackedBannedEphyraSubRoomRewardsHard", {
+        label = "SubRoomRewardsHard",
+        options = subRoomRewardsHardOptions,
+        helpText = "(Checked rewards are banned from hard Ephyra subroom reward pools)",
+    }),
+})
+
+return catalog.biomeBundle(definition, {
+    rooms = rooms,
+    npcs = npcs,
+    controls = controls,
+})

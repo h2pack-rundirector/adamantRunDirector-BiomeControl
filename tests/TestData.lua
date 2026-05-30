@@ -10,96 +10,54 @@ local function getStorageNode(storage, alias)
     end
 end
 
-local function getStorageIndex(storage, alias)
-    for index, node in ipairs(storage) do
-        if node.alias == alias then
-            return index
-        end
-    end
-end
-
-local function getField(fields, alias)
-    for _, field in ipairs(fields or {}) do
-        if field.alias == alias then
-            return field
-        end
-    end
-end
-
-local function getFieldIndex(fields, alias)
-    for index, field in ipairs(fields or {}) do
-        if field.alias == alias then
-            return index
-        end
-    end
-end
-
-function TestBiomeControlData:testCatalogGeneratesStandardRoomAndNpcAliases()
+function TestBiomeControlData:testCatalogKeepsBiomeAndNpcSettings()
     local data = dofile("src/mods/data.lua")
     local catalog = data.catalog
 
-    local arachne = catalog.roomLookup.Arachne.F
-    lu.assertEquals(arachne.modeKey, "ModeStoryArachne")
-    lu.assertEquals(arachne.rangeMinAlias, "PackedStoryArachneMin")
-    lu.assertEquals(arachne.rangeMaxAlias, "PackedStoryArachneMax")
+    local arachne = catalog.biomes.F.rooms.Arachne
+    lu.assertEquals(arachne.setting.name, "StoryArachne")
+    lu.assertEquals(arachne.setting.template, "ModeWithRange")
+    lu.assertEquals(arachne.setting.range.min, 4)
+    lu.assertEquals(arachne.setting.range.max, 8)
 
-    local trial = catalog.roomLookup.Trial.F
-    lu.assertEquals(trial.modeKey, "ModeTrialErebus")
-    lu.assertEquals(trial.rangeMinAlias, "PackedTrialErebusMin")
-    lu.assertEquals(trial.rangeMaxAlias, "PackedTrialErebusMax")
+    local trial = catalog.biomes.F.rooms.Trial
+    lu.assertEquals(trial.setting.name, "TrialErebus")
+    lu.assertEquals(trial.setting.range.min, 6)
+    lu.assertEquals(trial.setting.range.max, 10)
 
-    local nemesis = catalog.npcLookup.Nemesis.I
-    lu.assertEquals(nemesis.modeKey, "ModeNPCNemesisTartarus")
-    lu.assertEquals(nemesis.rangeMinAlias, "PackedNPCNemesisTartarusMin")
-    lu.assertEquals(nemesis.rangeMaxAlias, "PackedNPCNemesisTartarusMax")
+    local nemesis = catalog.npcs.Nemesis.lookup.I
+    lu.assertEquals(nemesis.setting.name, "NPCNemesisTartarus")
+    lu.assertEquals(nemesis.setting.template, "ModeWithRange")
 end
 
-function TestBiomeControlData:testExtensionControlsAreAggregatedIntoCatalogSurface()
+function TestBiomeControlData:testControlsAreDeclaredBySemanticTemplate()
     local data = dofile("src/mods/data.lua")
-    local controls = data.catalog
+    local controls = data.controls.build()
 
-    lu.assertNotNil(getField(controls.stateFields, "PreventEchoScam"))
-    lu.assertNotNil(getField(controls.stateFields, "ReplaceHermesInEphyra"))
-    lu.assertNil(getField(controls.stateFields, "PackedBannedEphyraSubRoomRewards"))
-    lu.assertNotNil(data.catalog.modeEntryLookup.EphyraMiniBossMode)
-    lu.assertNotNil(data.catalog.modeEntryLookup.ThessalyMiniBossMode)
-    lu.assertEquals(controls.biomeSpecials.H[1].alias, "PreventEchoScam")
-    lu.assertEquals(controls.biomeRewards.N[2].alias, "PackedBannedEphyraSubRoomRewards")
-    lu.assertEquals(controls.packedRewardFields.PackedBannedEphyraSubRoomRewards.alias, "PackedBannedEphyraSubRoomRewards")
-    lu.assertEquals(controls.packedRewardFieldsOrdered[1].alias, "PackedBannedEphyraSubRoomRewards")
-    lu.assertEquals(controls.packedRewardFieldsOrdered[2].alias, "PackedBannedEphyraSubRoomRewardsHard")
+    lu.assertEquals(controls.PreventEchoScam.template, "Flag")
+    lu.assertEquals(controls.ReplaceHermesInEphyra.template, "Choice")
+    lu.assertEquals(controls.EphyraMiniBossMode.template, "Mode")
+    lu.assertEquals(controls.ThessalyMiniBossMode.template, "ModeWithRange")
+    lu.assertEquals(controls.PackedBannedEphyraSubRoomRewards.template, "PackedSet")
+    lu.assertEquals(#controls.PackedBannedEphyraSubRoomRewards.options, 16)
 end
 
-function TestBiomeControlData:testStorageKeepsExtensionAliasesStable()
+function TestBiomeControlData:testStorageOnlyKeepsNonControlAliases()
     local data = dofile("src/mods/data.lua")
     local storage = data.storage.build()
 
-    lu.assertEquals(getStorageNode(storage, "PreventEchoScam").type, "bool")
-    lu.assertEquals(getStorageNode(storage, "ReplaceHermesInEphyra").type, "string")
-    lu.assertEquals(getStorageNode(storage, "ThessalyMiniBossMode").type, "int")
-    lu.assertEquals(getStorageNode(storage, "PackedForcedThessalyMiniBossMin").type, "int")
-
-    local packed = getStorageNode(storage, "PackedBannedEphyraSubRoomRewards")
-    lu.assertEquals(packed.type, "packedInt")
-    lu.assertEquals(#packed.bits, 16)
+    lu.assertEquals(getStorageNode(storage, "PriorityBiome1").type, "string")
+    lu.assertEquals(getStorageNode(storage, "DreamRouteEnabled").type, "bool")
+    lu.assertNil(getStorageNode(storage, "PreventEchoScam"))
+    lu.assertNil(getStorageNode(storage, "StoryArachne"))
 end
 
-function TestBiomeControlData:testGeneratedStorageKeepsBiomeOrderForExtensionFields()
+function TestBiomeControlData:testBaseAndBiomeControlsShareOneDeclarationSurface()
     local data = dofile("src/mods/data.lua")
-    local catalog = data.catalog
-    local storage = data.storage.build()
+    local controls = data.controls.build()
 
-    lu.assertTrue(
-        getStorageIndex(storage, "PackedBannedEphyraSubRoomRewards")
-            < getStorageIndex(storage, "PackedBannedEphyraSubRoomRewardsHard")
-    )
-
-    local storyIndex = getFieldIndex(catalog.modeStorageFields, "ModeStoryArachne")
-    local ephyraMinibossIndex = getFieldIndex(catalog.modeStorageFields, "EphyraMiniBossMode")
-    local thessalyMinibossIndex = getFieldIndex(catalog.modeStorageFields, "ThessalyMiniBossMode")
-    lu.assertNotNil(storyIndex)
-    lu.assertNotNil(ephyraMinibossIndex)
-    lu.assertNotNil(thessalyMinibossIndex)
-    lu.assertTrue(storyIndex < ephyraMinibossIndex)
-    lu.assertTrue(ephyraMinibossIndex < thessalyMinibossIndex)
+    lu.assertEquals(controls.OnlyAllowForcedEncounters.template, "Flag")
+    lu.assertEquals(controls.IgnoreMaxDepth.template, "Flag")
+    lu.assertEquals(controls.NPCSpacing.template, "Choice")
+    lu.assertEquals(controls.StoryArachne.template, "ModeWithRange")
 end

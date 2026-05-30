@@ -1,33 +1,51 @@
 local data = {}
 
 local definitions = import("mods/data/definitions.lua")
-local biomeLoader = import("mods/data/biomes.lua")
-local catalog = import("mods/data/catalog.lua")
 local baseStorage = import("mods/data/base_storage.lua")
-local biomeRegistry = biomeLoader.load()
+local settings = import("mods/data/settings_builder.lua", nil, {
+    definitions = definitions,
+})
+local baseControls = import("mods/data/base_controls.lua", nil, {
+    settings = settings,
+})
+local biomeLoader = import("mods/data/biomes.lua")
+local controlTemplates = import("mods/controls/templates.lua")
 
-local function appendNodes(target, nodes)
-    for _, node in ipairs(nodes or {}) do
-        target[#target + 1] = node
-    end
-end
-
-local catalogModel = catalog.create({
-    biomes = biomeRegistry,
-    defaults = {
-        roomModeValues = definitions.roomModeValues,
-        roomModeDisplayValues = definitions.roomModeDisplayValues,
-    },
+local biomeRegistry = biomeLoader.load({
+    definitions = definitions,
 })
 
 data.definitions = definitions
-data.catalog = catalogModel
+data.biomes = biomeRegistry
+data.catalog = biomeRegistry.catalog
 
 data.storage = {}
 function data.storage.build()
     local nodes = baseStorage.build()
-    appendNodes(nodes, catalogModel.storageNodes)
     return nodes
+end
+
+data.controls = {}
+
+function data.controls.buildTemplates()
+    return controlTemplates
+end
+
+function data.controls.build()
+    local controls = {}
+    local function append(control)
+        if controls[control.name] ~= nil then
+            error("duplicate BiomeControl control '" .. tostring(control.name) .. "'", 0)
+        end
+        controls[control.name] = control
+    end
+    for _, control in ipairs(baseControls.build()) do
+        append(control)
+    end
+    for _, control in ipairs(biomeRegistry.controls or {}) do
+        append(control)
+    end
+    return controls
 end
 
 return data

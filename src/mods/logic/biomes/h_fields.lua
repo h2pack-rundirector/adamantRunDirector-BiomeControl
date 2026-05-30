@@ -1,8 +1,7 @@
 local module = {}
-local CreateStoreReader
 
-local function PreventEchoScam(plan, read)
-    if not read("PreventEchoScam") then return end
+local function preventEchoScam(plan, runtime)
+    if not runtime.controls.read("PreventEchoScam") then return end
 
     local depthRequirement = {
         Path = { "CurrentRun", "BiomeDepthCache" },
@@ -17,18 +16,17 @@ local function PreventEchoScam(plan, read)
     end
 end
 
-function module.buildPatchPlan(plan, _, store)
-    PreventEchoScam(plan, CreateStoreReader(store))
+function module.buildPatchPlan(_, runtime, plan)
+    preventEchoScam(plan, runtime)
 end
 
-function module.registerHooks(host, store)
-    local read = CreateStoreReader(store)
-    host.hooks.wrap("SelectFieldsDoorCageCount", function(base, run, room)
+function module.registerHooks(moduleRef)
+    moduleRef.hooks.wrap("SelectFieldsDoorCageCount", function(host, runtime, base, run, room)
         if not host.isEnabled() then
             return base(run, room)
         end
 
-        if not read("ForceTwoRewardFieldsOpeners") then
+        if not runtime.controls.read("ForceTwoRewardFieldsOpeners") then
             return base(run, room)
         end
 
@@ -41,11 +39,6 @@ function module.registerHooks(host, store)
 
         return base(run, room)
     end)
-end
-
-function module.bind(deps)
-    CreateStoreReader = deps.CreateStoreReader
-    return module
 end
 
 return module

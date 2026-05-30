@@ -23,9 +23,8 @@ local function init()
     local data = import("mods/data.lua")
     local godAvailability = import("mods/cache/god_availability.lua").create()
     data.godAvailability = godAvailability
-    local hashGroups = import("mods/hash_groups.lua").bind(data)
-    local logic = import("mods/logic.lua").bind(data)
-    local ui = import("mods/ui.lua").bind(data)
+    local logic = import("mods/logic.lua", nil, data)
+    local ui = import("mods/ui.lua", nil, data)
 
     local module = lib.createModule({
         pluginGuid = PLUGIN_GUID,
@@ -40,13 +39,14 @@ local function init()
     end
 
     module.data.define(data.storage.build())
+    module.controls.defineTemplates(data.controls.buildTemplates())
+    module.controls.define(data.controls.build())
     module.cache.define(logic.buildCacheDeclarations())
     module.actions.define({
         resetAll = function(host, uiData)
             uiData.resetAll()
         end,
     })
-    module.hashGroups.define(hashGroups.buildHashGroupPlan())
     module.ui.tab(ui.drawTab)
     module.ui.quickContent(ui.drawQuickContent)
 

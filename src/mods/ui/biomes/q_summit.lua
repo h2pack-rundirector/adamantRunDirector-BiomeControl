@@ -1,11 +1,10 @@
+local deps = ...
 local module = {}
+local components = deps.components
 
-function module.draw()
+function module.draw(ui)
+    components.DrawPlaceholder(ui.draw, "Summit")
     return false
-end
-
-function module.bind()
-    return module
 end
 
 return module

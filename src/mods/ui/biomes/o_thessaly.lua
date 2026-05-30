@@ -1,60 +1,45 @@
+local deps = ...
 local module = {}
-local definitions
-local catalog
-local components
+local catalog = deps.catalog
+local components = deps.components
 
 local THESSALY_ROOMS_COLOR = { 0.70, 0.64, 0.95, 1.0 }
-local thessalyRoomsSection
+local MINIBOSS_COLOR = { 0.88, 0.38, 0.32, 1.0 }
+local ROOM_CONTROLLER_OPTS = {
+    label = "",
+    controlWidth = 120,
+    rangeColumnX = 310,
+}
 
-local function getThessalyRangeField()
-    for _, field in ipairs(catalog.rangeFields or {}) do
-        if field.rangeMinAlias == "PackedForcedThessalyMiniBossMin" then
-            return field
-        end
-    end
+local function drawRoom(ui, def)
+    components.DrawSetting(ui, def.setting, ROOM_CONTROLLER_OPTS)
 end
 
-local function drawThessalyMinibossRow(draw, state)
+local function drawThessalyMinibossRow(ui)
+    local entry = catalog.biomes.O.controls.ThessalyMiniBossMode
+    components.DrawSetting(ui, entry and entry.setting, {
+        labelWidth = 160,
+        controlWidth = 200,
+        rangeColumnX = 410,
+    })
+end
+
+function module.draw(ui)
+    local draw = ui.draw
+    local biome = catalog.biomes.O
     local imgui = draw.imgui
-    local rangeColumnGap = 20
-    components.DrawModeRow(draw, state, catalog, "ThessalyMiniBossMode", nil, 200)
 
-    local mode = catalog.GetModeValue(function(key)
-        return state.get(key):read()
-    end, "ThessalyMiniBossMode")
-    local rangeField = getThessalyRangeField()
-    if rangeField and (mode == "charybdis" or mode == "captain") then
-        imgui.SameLine()
-        imgui.SetCursorPosX(imgui.GetCursorPosX() + rangeColumnGap)
-        components.DrawRangeDropdowns(
-            draw,
-            state,
-            rangeField.rangeMinAlias,
-            rangeField.rangeMaxAlias,
-            rangeField.min,
-            rangeField.max
-        )
-    end
-end
+    components.DrawSectionHeading(draw, "Rooms", THESSALY_ROOMS_COLOR)
+    drawRoom(ui, biome.rooms.Circe)
+    drawRoom(ui, biome.rooms.Trial)
+    drawRoom(ui, biome.rooms.Fountain)
+    drawRoom(ui, biome.rooms.Shop)
 
-function module.draw(draw, state)
-    components.DrawRoomSection(draw, state, definitions, catalog, "O", thessalyRoomsSection)
+    imgui.Spacing()
 
-    components.DrawSectionHeading(draw, components.SECTION_MINIBOSSES.label, components.SECTION_MINIBOSSES.color)
-    drawThessalyMinibossRow(draw, state)
+    components.DrawSectionHeading(draw, "Minibosses", MINIBOSS_COLOR)
+    drawThessalyMinibossRow(ui)
     return true
-end
-
-function module.bind(deps)
-    definitions = deps.definitions
-    catalog = deps.catalog
-    components = deps.components
-    thessalyRoomsSection = {
-        label = components.SECTION_ROOMS.label,
-        color = THESSALY_ROOMS_COLOR,
-        types = components.SECTION_ROOMS.types,
-    }
-    return module
 end
 
 return module

@@ -1,38 +1,32 @@
+local deps = ...
 local module = {}
-local roomModes
+
+local roomModes = import("mods/logic/biomes/room_modes.lua", nil, deps)
 local biomeLogic = {}
 
-local function BindLogic()
-    function module.buildPatchPlan(plan, host, store)
-        if roomModes.buildPatchPlan then
-            roomModes.buildPatchPlan(plan, host, store)
-        end
-        for _, logic in ipairs(biomeLogic) do
-            if logic.buildPatchPlan then
-                logic.buildPatchPlan(plan, host, store)
-            end
-        end
+for _, biome in ipairs(deps.catalog.biomes.ordered or {}) do
+    if biome.logic then
+        biomeLogic[#biomeLogic + 1] = import(biome.logic, nil, deps)
     end
+end
 
-    function module.registerHooks(host, store)
-        for _, logic in ipairs(biomeLogic) do
-            if logic.registerHooks then
-                logic.registerHooks(host, store)
-            end
+function module.buildPatchPlan(host, runtime, plan)
+    if roomModes.buildPatchPlan then
+        roomModes.buildPatchPlan(host, runtime, plan)
+    end
+    for _, logic in ipairs(biomeLogic) do
+        if logic.buildPatchPlan then
+            logic.buildPatchPlan(host, runtime, plan)
         end
     end
 end
 
-function module.bind(deps)
-    roomModes = import("mods/logic/biomes/room_modes.lua").bind(deps)
-    biomeLogic = {}
-    for _, biome in ipairs(deps.catalog.biomes or {}) do
-        if biome.logic then
-            biomeLogic[#biomeLogic + 1] = import(biome.logic).bind(deps)
+function module.registerHooks(moduleRef)
+    for _, logic in ipairs(biomeLogic) do
+        if logic.registerHooks then
+            logic.registerHooks(moduleRef)
         end
     end
-    BindLogic()
-    return module
 end
 
 return module

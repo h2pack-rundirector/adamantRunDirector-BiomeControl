@@ -183,6 +183,46 @@ local function applyOverrides(target, overrides)
     end
 end
 
+local function normalizeControlFieldKey(key)
+    if key == "mode" then return "Mode" end
+    if key == "min" then return "Min" end
+    if key == "max" then return "Max" end
+    if key == "value" then return "Value" end
+    return key
+end
+
+local function writeControlValue(control, key, value)
+    local normalizedKey = normalizeControlFieldKey(key)
+    if normalizedKey == "Mode" and type(control.writeMode) == "function" then
+        return control:writeMode(value)
+    end
+    if normalizedKey == "Value" and type(control.write) == "function" then
+        return control:write(value)
+    end
+    if type(control.field) ~= "function" then
+        error("control does not expose field access", 2)
+    end
+
+    local field = normalizedKey == "Value" and control:field() or control:field(normalizedKey)
+    if field == nil or type(field.write) ~= "function" then
+        error("control field '" .. tostring(normalizedKey) .. "' is not writable", 2)
+    end
+    return field:write(value)
+end
+
+local function applyControlFixtures(ui, fixtures)
+    for name, values in pairs(fixtures or {}) do
+        local control = ui.controls.get(name)
+        if type(values) == "table" then
+            for key, value in pairs(values) do
+                writeControlValue(control, key, value)
+            end
+        else
+            writeControlValue(control, "Value", values)
+        end
+    end
+end
+
 local function getLiveStore(liveHost)
     local registry = AdamantModpackLib_Runtime and AdamantModpackLib_Runtime.registry
     local modules = registry and registry.modules
@@ -228,8 +268,7 @@ function ResetBiomeControlHarness(opts)
     local data = dofile("src/mods/data.lua")
     local godAvailability = dofile("src/mods/cache/god_availability.lua").create()
     data.godAvailability = godAvailability
-    local hashGroups = import("mods/hash_groups.lua").bind(data)
-    local logic = import("mods/logic.lua").bind(data)
+    local logic = import("mods/logic.lua", nil, data)
 
     local config = dofile("src/config.lua")
     applyOverrides(config, opts.config)
@@ -242,9 +281,16 @@ function ResetBiomeControlHarness(opts)
         name = "Biome Control",
     })
     module.data.define(data.storage.build())
+    module.controls.defineTemplates(data.controls.buildTemplates())
+    module.controls.define(data.controls.build())
     module.cache.define(logic.buildCacheDeclarations())
-    module.hashGroups.define(hashGroups.buildHashGroupPlan())
-    module.ui.tab(function() end)
+    local pendingControlFixtures = opts.controls
+    module.ui.tab(function(_, ui)
+        if pendingControlFixtures ~= nil then
+            applyControlFixtures(ui, pendingControlFixtures)
+            pendingControlFixtures = nil
+        end
+    end)
     module.mutation.patch(logic.buildPatchPlan)
     godAvailability.registerShared(module)
     if opts.registerHooks then
@@ -255,6 +301,10 @@ function ResetBiomeControlHarness(opts)
 
     local liveHost = lib.createFrameworkRuntime("adamant-ModpackFramework").modules.getLiveHost(pluginGuid)
     local store = getLiveStore(liveHost)
+    if opts.controls ~= nil then
+        liveHost.drawTab()
+        liveHost.flush()
+    end
 
     return {
         data = data,

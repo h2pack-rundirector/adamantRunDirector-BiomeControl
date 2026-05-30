@@ -1,6 +1,4 @@
 local module = {}
-local catalog
-local CreateStoreReader
 
 local function isOptionBanned(packedValue, bit)
     return bit32.band(packedValue or 0, bit32.lshift(1, bit)) ~= 0
@@ -73,17 +71,17 @@ local function appendImpossibleRequirement(plan, roomKey)
     })
 end
 
-local function replaceHermesInEphyra(plan, read, log)
-    local replacement = read("ReplaceHermesInEphyra") or ""
+local function replaceHermesInEphyra(plan, runtime, log)
+    local replacement = runtime.controls.read("ReplaceHermesInEphyra") or ""
     if replacement == "" then
         return
     end
 
     local applied = false
-    forEachRewardStoreTarget("HubRewards", function(store)
-        local hermesHubReward = findRewardEntry(store, "HubRewards", "HermesUpgrade")
+    forEachRewardStoreTarget("HubRewards", function(rewardStore)
+        local hermesHubReward = findRewardEntry(rewardStore, "HubRewards", "HermesUpgrade")
         if hermesHubReward then
-            plan:setElement(store, "HubRewards", hermesHubReward, copyRewardEntry(hermesHubReward, replacement))
+            plan:setElement(rewardStore, "HubRewards", hermesHubReward, copyRewardEntry(hermesHubReward, replacement))
             applied = true
         end
     end)
@@ -93,8 +91,8 @@ local function replaceHermesInEphyra(plan, read, log)
     end
 end
 
-local function blockReplacementFromArtemis(plan, read, log)
-    local replacement = read("ReplaceHermesInEphyra") or ""
+local function blockReplacementFromArtemis(plan, runtime, log)
+    local replacement = runtime.controls.read("ReplaceHermesInEphyra") or ""
     if replacement == "" or replacement == "HermesUpgrade" then
         return
     end
@@ -108,8 +106,8 @@ local function blockReplacementFromArtemis(plan, read, log)
     log("Added %s to BaseArtemisCombat.RequireNotRoomReward", replacement)
 end
 
-local function applyEphyraRooms(plan, read, log)
-    local storyMode = catalog.GetModeValue(read, "EphyraStoryMode")
+local function applyEphyraRooms(plan, runtime, log)
+    local storyMode = runtime.controls.get("EphyraStoryMode"):mode()
     if storyMode == "forced" and RoomData and RoomData.N_Story01 then
         plan:setMany(RoomData.N_Story01, { AlwaysForce = true })
         log("Forced Ephyra story room when eligible")
@@ -118,7 +116,7 @@ local function applyEphyraRooms(plan, read, log)
         log("Disabled Ephyra story room")
     end
 
-    local minibossMode = catalog.GetModeValue(read, "EphyraMiniBossMode")
+    local minibossMode = runtime.controls.get("EphyraMiniBossMode"):mode()
     if minibossMode == "satyr_crossbow" then
         plan:setMany(RoomData.N_MiniBoss01, { AlwaysForce = true })
         appendImpossibleRequirement(plan, "N_MiniBoss02")
@@ -134,20 +132,20 @@ local function applyEphyraRooms(plan, read, log)
     end
 end
 
-local function applyEphyraRewardBans(plan, read, log)
-    local normalRewards = catalog.packedRewardFields.PackedBannedEphyraSubRoomRewards
-    local hardRewards = catalog.packedRewardFields.PackedBannedEphyraSubRoomRewardsHard
-    local packedNormal = read(normalRewards.alias) or 0
-    local packedHard = read(hardRewards.alias) or 0
+local function applyEphyraRewardBans(plan, runtime, log)
+    local normalRewards = runtime.controls.get("PackedBannedEphyraSubRoomRewards")
+    local hardRewards = runtime.controls.get("PackedBannedEphyraSubRoomRewardsHard")
+    local packedNormal = normalRewards:mask()
+    local packedHard = hardRewards:mask()
 
-    local appliedNormal = forEachRewardStoreTarget("SubRoomRewards", function(store)
-        plan:transform(store, "SubRoomRewards", function(list)
-            return filterRewardStore(list, packedNormal, normalRewards.options)
+    local appliedNormal = forEachRewardStoreTarget("SubRoomRewards", function(rewardStore)
+        plan:transform(rewardStore, "SubRoomRewards", function(list)
+            return filterRewardStore(list, packedNormal, normalRewards:options())
         end)
     end)
-    local appliedHard = forEachRewardStoreTarget("SubRoomRewardsHard", function(store)
-        plan:transform(store, "SubRoomRewardsHard", function(list)
-            return filterRewardStore(list, packedHard, hardRewards.options)
+    local appliedHard = forEachRewardStoreTarget("SubRoomRewardsHard", function(rewardStore)
+        plan:transform(rewardStore, "SubRoomRewardsHard", function(list)
+            return filterRewardStore(list, packedHard, hardRewards:options())
         end)
     end)
 
@@ -156,19 +154,12 @@ local function applyEphyraRewardBans(plan, read, log)
     end
 end
 
-function module.buildPatchPlan(plan, host, store)
-    local read = CreateStoreReader(store)
+function module.buildPatchPlan(host, runtime, plan)
     local log = host.logIf
-    replaceHermesInEphyra(plan, read, log)
-    blockReplacementFromArtemis(plan, read, log)
-    applyEphyraRooms(plan, read, log)
-    applyEphyraRewardBans(plan, read, log)
-end
-
-function module.bind(deps)
-    catalog = deps.catalog
-    CreateStoreReader = deps.CreateStoreReader
-    return module
+    replaceHermesInEphyra(plan, runtime, log)
+    blockReplacementFromArtemis(plan, runtime, log)
+    applyEphyraRooms(plan, runtime, log)
+    applyEphyraRewardBans(plan, runtime, log)
 end
 
 return module

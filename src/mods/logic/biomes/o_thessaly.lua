@@ -1,6 +1,4 @@
 local module = {}
-local catalog
-local CreateStoreReader
 
 local function appendImpossibleRequirement(plan, roomKey)
     local room = RoomData and RoomData[roomKey]
@@ -54,8 +52,9 @@ local function applyBiomeDepthRange(plan, roomKey, minValue, maxValue)
     end)
 end
 
-local function applyThessalyMiniboss(plan, read, log)
-    local mode = catalog.GetModeValue(read, "ThessalyMiniBossMode")
+local function applyThessalyMiniboss(plan, runtime, log)
+    local control = runtime.controls.get("ThessalyMiniBossMode")
+    local mode = control:mode()
     if mode == "default" then
         return
     end
@@ -67,9 +66,7 @@ local function applyThessalyMiniboss(plan, read, log)
         return
     end
 
-    local rangeField = catalog.rangeFieldLookup.PackedForcedThessalyMiniBossMin
-    local minValue = read(rangeField.rangeMinAlias) or rangeField.min
-    local maxValue = read(rangeField.rangeMaxAlias) or rangeField.max
+    local minValue, maxValue = control:range()
     if minValue > maxValue then
         maxValue = minValue
     end
@@ -85,14 +82,8 @@ local function applyThessalyMiniboss(plan, read, log)
     end
 end
 
-function module.buildPatchPlan(plan, host, store)
-    applyThessalyMiniboss(plan, CreateStoreReader(store), host.logIf)
-end
-
-function module.bind(deps)
-    catalog = deps.catalog
-    CreateStoreReader = deps.CreateStoreReader
-    return module
+function module.buildPatchPlan(host, runtime, plan)
+    applyThessalyMiniboss(plan, runtime, host.logIf)
 end
 
 return module
