@@ -1,35 +1,27 @@
 local deps = ...
 local module = {}
-local catalog = deps.catalog
-local components = deps.components
+local biomeStyle = deps.biomeStyle
+local uiShared = deps.uiShared
+local resolver = deps.resolver
 
-local MINIBOSS_COLOR = { 0.88, 0.38, 0.32, 1.0 }
-local SPECIAL_COLOR = { 1.0, 0.60, 0.28, 1.0 }
-local ROOM_CONTROLLER_OPTS = {
-    label = "",
-    controlWidth = 120,
-    rangeColumnX = 310,
-}
-
-local function drawRoom(ui, def)
-    components.DrawSetting(ui, def.setting, ROOM_CONTROLLER_OPTS)
+local function drawRoom(ui, controlName)
+    ui.draw.control(ui.controls.get(controlName), "default", biomeStyle.opts.roomController)
 end
 
 function module.draw(ui)
     local draw = ui.draw
-    local biome = catalog.biomes.H
     local imgui = draw.imgui
 
-    components.DrawSectionHeading(draw, "Minibosses", MINIBOSS_COLOR)
-    drawRoom(ui, biome.minibosses.Vampire)
-    drawRoom(ui, biome.minibosses.Lamia)
+    uiShared.DrawSectionHeading(draw, "Minibosses", biomeStyle.colors.miniboss)
+    drawRoom(ui, resolver.miniboss("H", "Vampire"))
+    drawRoom(ui, resolver.miniboss("H", "Lamia"))
 
     imgui.Spacing()
 
-    components.DrawSectionHeading(draw, "Special", SPECIAL_COLOR)
-    components.DrawSetting(ui, biome.controls.PreventEchoScam.setting)
+    uiShared.DrawSectionHeading(draw, "Special", biomeStyle.colors.special)
+    draw.control(ui.controls.get(resolver.control("H", "PreventEchoScam")))
     imgui.Spacing()
-    components.DrawSetting(ui, biome.controls.ForceTwoRewardFieldsOpeners.setting)
+    draw.control(ui.controls.get(resolver.control("H", "ForceTwoRewardFieldsOpeners")))
     return true
 end
 

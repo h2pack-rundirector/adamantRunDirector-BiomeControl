@@ -1,4 +1,6 @@
 local shared = import("mods/controls/shared.lua")
+local deps = ...
+deps = deps or {}
 local modeBase = import("mods/controls/Mode/base.lua", nil, {
     shared = shared,
 })
@@ -6,6 +8,13 @@ local modeBase = import("mods/controls/Mode/base.lua", nil, {
 return {
     Flag = import("mods/controls/Flag/Flag.lua"),
     Choice = import("mods/controls/Choice/Choice.lua", nil, {
+        shared = shared,
+    }),
+    GodChoice = import("mods/controls/GodChoice/GodChoice.lua", nil, {
+        shared = shared,
+        godAvailability = deps.godAvailability,
+    }),
+    DreamRoute = import("mods/controls/DreamRoute/DreamRoute.lua", nil, {
         shared = shared,
     }),
     Mode = import("mods/controls/Mode/Mode.lua", nil, {

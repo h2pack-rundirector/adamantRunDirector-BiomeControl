@@ -1,4 +1,4 @@
-local components = {}
+local uiShared = {}
 
 local MUTED_TEXT_OPTS = {
     color = { 0.65, 0.65, 0.65, 1.0 },
@@ -19,26 +19,13 @@ local function getTextColorOpts(color)
     return opts
 end
 
-function components.DrawSectionHeading(draw, text, color)
+function uiShared.DrawSectionHeading(draw, text, color)
     draw.widgets.text(text, getTextColorOpts(color))
     draw.widgets.separator()
 end
 
-function components.DrawMutedText(draw, text)
+function uiShared.DrawMutedText(draw, text)
     draw.widgets.text(text, MUTED_TEXT_OPTS)
 end
 
-function components.DrawSetting(ui, setting, opts)
-    if setting == nil then
-        return false
-    end
-    return ui.draw.control(ui.controls.get(setting.name), "default", opts)
-end
-
-function components.DrawPlaceholder(draw, region)
-    draw.widgets.text(region)
-    draw.widgets.separator()
-    components.DrawMutedText(draw, "No controls are available for this tab.")
-end
-
-return components
+return uiShared

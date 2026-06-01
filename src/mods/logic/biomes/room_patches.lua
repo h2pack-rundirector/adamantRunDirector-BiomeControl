@@ -1,39 +1,4 @@
-local deps = ...
-local module = {}
-local catalog = deps.catalog
-
-local function appendDefinitions(target, source)
-    for _, def in ipairs(source or {}) do
-        target[#target + 1] = def
-    end
-end
-
-local function buildRoomDefinitions()
-    local definitions = {}
-    for _, biome in ipairs(catalog.biomes.ordered or {}) do
-        appendDefinitions(definitions, biome.roomOrder)
-        appendDefinitions(definitions, biome.minibossOrder)
-    end
-    return definitions
-end
-
-local function getRoomKey(def)
-    if def.roomKey and def.roomKey ~= "" then
-        return def.roomKey
-    end
-    if def.type == "Story" then
-        return def.biome .. "_Story01"
-    end
-    if def.type == "Fountain" then
-        return def.biome .. "_Reprieve01"
-    end
-    if def.type == "Shop" then
-        return def.biome .. "_Shop01"
-    end
-    if def.type == "Trial" and def.biome == "O" then
-        return "O_Devotion01"
-    end
-end
+local roomPatches = {}
 
 local function getRoomData(def, roomKey)
     if RoomData and RoomData[roomKey] then
@@ -82,43 +47,46 @@ local function applyBiomeDepthRequirements(plan, room, minValue, maxValue)
     end)
 end
 
-local function applyRangeOverride(plan, def, roomKey, minValue, maxValue)
+function roomPatches.forceRoomBetweenRange(plan, def, roomKey, minValue, maxValue, extraValues)
     local room = getRoomData(def, roomKey)
-    if not room then return end
-    plan:setMany(room, {
+    if not room then return false end
+
+    local values = {
         ForceAtBiomeDepthMin = minValue,
         ForceAtBiomeDepthMax = maxValue,
-    })
+    }
+    if extraValues then
+        for key, value in pairs(extraValues) do
+            values[key] = value
+        end
+    end
+
+    plan:setMany(room, values)
     applyBiomeDepthRequirements(plan, room, minValue, maxValue)
+    return true
 end
 
-local function disableRoom(plan, def, roomKey)
+function roomPatches.disableRoom(plan, def, roomKey)
     local room = getRoomData(def, roomKey)
-    if not room then return end
+    if not room then return false end
 
     plan:appendUnique(room, "GameStateRequirements", {
         Path = { "CurrentRun", "BiomeDepthCache" },
         Comparison = "==",
         Value = -1,
     })
+    return true
 end
 
-local roomDefinitions = buildRoomDefinitions()
-
-function module.buildPatchPlan(_, runtime, plan)
-    for _, def in ipairs(roomDefinitions) do
-        local roomKey = getRoomKey(def)
-        if roomKey then
-            local control = runtime.controls.get(def.setting.name)
-            local mode = control:mode()
-            if mode == "forced" then
-                local minValue, maxValue = control:range()
-                applyRangeOverride(plan, def, roomKey, minValue, maxValue)
-            elseif mode == "disabled" then
-                disableRoom(plan, def, roomKey)
-            end
-        end
+function roomPatches.patchForceOrDisableRoom(plan, runtime, info)
+    local control = runtime.controls.get(info.controlName)
+    local mode = control:mode()
+    if mode == "forced" then
+        local minValue, maxValue = control:range()
+        roomPatches.forceRoomBetweenRange(plan, info, info.roomKey, minValue, maxValue)
+    elseif mode == "disabled" then
+        roomPatches.disableRoom(plan, info, info.roomKey)
     end
 end
 
-return module
+return roomPatches

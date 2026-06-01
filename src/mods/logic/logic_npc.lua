@@ -1,31 +1,14 @@
 local deps = ...
 local module = {}
-local catalog = deps.catalog
+local resolver = deps.resolver
 local GetRunState = deps.GetRunState
 
 local npcPriorityList = { "Artemis", "Icarus", "Heracles", "Athena", "Nemesis" }
 local forcePattern = "[FGHINOPQ]$"
 local strictPattern = "[FGHINOPQ]0?2?$"
 
-local function buildNpcLookup()
-    local lookup = {}
-    for _, groupKey in ipairs(catalog.npcs.orderedIds or {}) do
-        local group = catalog.npcs[groupKey]
-        local actualNPCName = group and group.actualNPCName
-        if actualNPCName then
-            lookup[actualNPCName] = lookup[actualNPCName] or {}
-            for _, def in ipairs(group.definitions or {}) do
-                lookup[actualNPCName][def.biome] = def
-            end
-        end
-    end
-    return lookup
-end
-
-local npcLookup = buildNpcLookup()
-
 local function getCurrentNPCRange(runtime, def)
-    return runtime.controls.get(def.setting.name):range()
+    return runtime.controls.get(def.controlName):range()
 end
 
 function module.buildPatchPlan(_, runtime, plan)
@@ -51,12 +34,11 @@ function module.registerHooks(moduleRef)
         local encounterSeen = state.NPCEncounterSeen or {}
         local pending = state.ForcedNPCPending or {}
 
-        for _, groupKey in ipairs(catalog.npcs.orderedIds or {}) do
-            local group = catalog.npcs[groupKey]
+        for _, group in ipairs(resolver.npcGroups()) do
             local actualNPCName = group.actualNPCName
-            local perPending = pending[groupKey]
+            local perPending = pending[group.id]
             if perPending and currentRoomSet and perPending[currentRoomSet] and not encounterSeen[actualNPCName] then
-                local def = group.lookup and group.lookup[currentRoomSet]
+                local def = resolver.npcInfo(group.id, currentRoomSet)
                 if def then
                     local minValue, maxValue = getCurrentNPCRange(runtime, def)
                     local depthOkay = biomeDepth >= minValue and
@@ -95,10 +77,10 @@ function module.registerHooks(moduleRef)
                     and encounterName:find("Combat", 1, true) then
                     for _, npcName in ipairs(npcPriorityList) do
                         if encounterName:find(npcName, 1, true) then
-                            local def = npcLookup[npcName] and npcLookup[npcName][currentRoomSet]
+                            local def = resolver.npcInfoByActualName(npcName, currentRoomSet)
                             if def then
                                 local perPending = pending[def.groupKey]
-                                local control = runtime.controls.get(def.setting.name)
+                                local control = runtime.controls.get(def.controlName)
                                 local mode = control:mode()
                                 local minValue, maxValue = control:range()
                                 if mode == "disabled" then

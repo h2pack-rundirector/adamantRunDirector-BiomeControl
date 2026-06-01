@@ -1,77 +1,92 @@
 local deps = ...
-local builder = deps.builder
 local catalog = deps.catalog
-local settings = deps.settings
+local controlDefs = deps.controlDefs
 
 local definition = {
     key = "P",
     label = "Olympus",
     region = "Surface",
+    logic = "mods/logic/biomes/p_olympus.lua",
     ui = "mods/ui/biomes/p_olympus.lua",
 }
 
-local room = builder.room(definition)
-local npc = builder.npc(definition)
+local room = catalog.room(definition)
+local npc = catalog.npc(definition)
+
+local controls = {
+    StoryDionysus = controlDefs.modeWithRange("StoryDionysus", {
+        min = 3,
+        max = 7,
+    }),
+    FountainOlympus = controlDefs.modeWithRange("FountainOlympus", {
+        min = 4,
+        max = 7,
+    }),
+    ShopOlympus = controlDefs.modeWithRange("ShopOlympus", {
+        min = 5,
+        max = 7,
+    }),
+    MiniBossTalos = controlDefs.modeWithRange("MiniBossTalos", {
+        min = 4,
+        max = 7,
+    }),
+    MiniBossDragon = controlDefs.modeWithRange("MiniBossDragon", {
+        min = 4,
+        max = 7,
+    }),
+    NPCHeraclesOlympus = controlDefs.modeWithRange("NPCHeraclesOlympus", {
+        min = 0,
+        max = 10,
+    }),
+    NPCAthenaOlympus = controlDefs.modeWithRange("NPCAthenaOlympus", {
+        min = 4,
+        max = 8,
+    }),
+    NPCIcarusOlympus = controlDefs.modeWithRange("NPCIcarusOlympus", {
+        min = 3,
+        max = 8,
+    }),
+}
 
 local rooms = catalog.rooms({
     room.story("Dionysus", {
-        setting = settings.modeWithRange("StoryDionysus", {
-            min = 3,
-            max = 7,
-        }),
+        roomKey = "P_Story01",
+        controlName = "StoryDionysus",
     }),
     room.fountain({
-        setting = settings.modeWithRange("FountainOlympus", {
-            min = 4,
-            max = 7,
-        }),
+        roomKey = "P_Reprieve01",
+        controlName = "FountainOlympus",
     }),
     room.shop({
-        setting = settings.modeWithRange("ShopOlympus", {
-            min = 5,
-            max = 7,
-        }),
+        roomKey = "P_Shop01",
+        controlName = "ShopOlympus",
     }),
     room.minibossDepth("Talos", {
         roomKey = "P_MiniBoss01",
         label = "Talos",
-        setting = settings.modeWithRange("MiniBossTalos", {
-            min = 4,
-            max = 7,
-        }),
+        controlName = "MiniBossTalos",
     }),
     room.minibossDepth("Dragon", {
         roomKey = "P_MiniBoss02",
         label = "Mega-Dracon",
-        setting = settings.modeWithRange("MiniBossDragon", {
-            min = 4,
-            max = 7,
-        }),
+        controlName = "MiniBossDragon",
     }),
 })
 
 local npcs = catalog.npcs({
     npc("Heracles", {
-        setting = settings.modeWithRange("NPCHeraclesOlympus", {
-            min = 0,
-            max = 10,
-        }),
+        controlName = "NPCHeraclesOlympus",
     }),
     npc("Athena", {
-        setting = settings.modeWithRange("NPCAthenaOlympus", {
-            min = 4,
-            max = 8,
-        }),
+        controlName = "NPCAthenaOlympus",
     }),
     npc("Icarus", {
-        setting = settings.modeWithRange("NPCIcarusOlympus", {
-            min = 3,
-            max = 8,
-        }),
+        controlName = "NPCIcarusOlympus",
     }),
 })
 
-return catalog.biomeBundle(definition, {
+return catalog.biome(definition, {
     rooms = rooms,
     npcs = npcs,
+    controlDeclarations = controls,
 })

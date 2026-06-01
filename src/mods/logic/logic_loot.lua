@@ -1,50 +1,19 @@
 local deps = ...
 local module = {}
-local definitions = deps.definitions
 local GetRunState = deps.GetRunState
-local godAvailability = deps.godAvailability
-
-local priorityGodByLootKey = {}
-
-for _, god in ipairs(definitions.priorityGods or {}) do
-    priorityGodByLootKey[god.lootKey] = god.label
-end
-
-local function isPriorityLootAvailable(runtime, lootKey)
-    if lootKey == "" then
-        return true
-    end
-
-    local godKey = priorityGodByLootKey[lootKey]
-    if not godKey then
-        return true
-    end
-
-    return godAvailability.isAvailable(runtime.data, godKey)
-end
-
-local function availablePriorityKey(runtime, lootKey)
-    lootKey = lootKey or ""
-    if lootKey ~= "" and not isPriorityLootAvailable(runtime, lootKey) then
-        return ""
-    end
-    return lootKey
-end
 
 local function priorityKeyForBiome(runtime, biomeIndex)
-    local store = runtime.data
     biomeIndex = math.max((biomeIndex or 0) - 1, 0)
-    if biomeIndex == 0 then return availablePriorityKey(runtime, store.read("PriorityBiome1")) end
-    if biomeIndex == 1 then return availablePriorityKey(runtime, store.read("PriorityBiome2")) end
-    if biomeIndex == 2 then return availablePriorityKey(runtime, store.read("PriorityBiome3")) end
-    if biomeIndex == 3 then return availablePriorityKey(runtime, store.read("PriorityBiome4")) end
+    if biomeIndex == 0 then return runtime.controls.get("PriorityBiome1"):readAvailable(runtime.data) end
+    if biomeIndex == 1 then return runtime.controls.get("PriorityBiome2"):readAvailable(runtime.data) end
+    if biomeIndex == 2 then return runtime.controls.get("PriorityBiome3"):readAvailable(runtime.data) end
+    if biomeIndex == 3 then return runtime.controls.get("PriorityBiome4"):readAvailable(runtime.data) end
     return ""
 end
 
 local function priorityKeyForTrial(runtime, trialIndex)
-    local store = runtime.data
-    if trialIndex == 1 then return availablePriorityKey(runtime, store.read("PriorityTrial1")) end
-    if trialIndex == 2 then return availablePriorityKey(runtime, store.read("PriorityTrial2")) end
+    if trialIndex == 1 then return runtime.controls.get("PriorityTrial1"):readAvailable(runtime.data) end
+    if trialIndex == 2 then return runtime.controls.get("PriorityTrial2"):readAvailable(runtime.data) end
     return ""
 end
 

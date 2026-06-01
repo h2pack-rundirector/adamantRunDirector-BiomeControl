@@ -1,8 +1,6 @@
 local deps = ...
-local builder = deps.builder
 local catalog = deps.catalog
-local settings = deps.settings
-local definitions = deps.definitions
+local controlDefs = deps.controlDefs
 
 local EPHYRA_STORY_MODE_OPTIONS = { "default", "disabled", "forced" }
 local EPHYRA_STORY_MODE_DISPLAY = {
@@ -45,20 +43,6 @@ local subRoomRewardsHardOptions = {
     { bit = 3, label = "Money",         name = "RoomMoneyDrop" },
 }
 
-local function buildHubRewardReplacementOptions()
-    local values = { "" }
-    local displayValues = {
-        [""] = "Hermes (Default)",
-    }
-
-    for _, god in ipairs(definitions.priorityGods or {}) do
-        values[#values + 1] = god.lootKey
-        displayValues[god.lootKey] = god.label
-    end
-
-    return values, displayValues
-end
-
 local definition = {
     key = "N",
     label = "Ephyra",
@@ -67,65 +51,73 @@ local definition = {
     ui = "mods/ui/biomes/n_ephyra.lua",
 }
 
-local npc = builder.npc(definition)
-local hubRewardReplacementValues, hubRewardReplacementDisplayValues = buildHubRewardReplacementOptions()
+local npc = catalog.npc(definition)
 
-local rooms = catalog.rooms({})
-
-local npcs = catalog.npcs({
-    npc("Artemis", {
-        groupKey = "ArtemisSurface",
-        setting = settings.modeWithRange("NPCArtemisEphyra", {
-            min = 4,
-            max = 10,
-        }),
+local controls = {
+    NPCArtemisEphyra = controlDefs.modeWithRange("NPCArtemisEphyra", {
+        min = 4,
+        max = 10,
     }),
-    npc("Heracles", {
-        setting = settings.modeWithRange("NPCHeraclesEphyra", {
-            min = 0,
-            max = 10,
-        }),
+    NPCHeraclesEphyra = controlDefs.modeWithRange("NPCHeraclesEphyra", {
+        min = 0,
+        max = 10,
     }),
-})
-
-local controls = catalog.controls({
-    settings.mode("EphyraStoryMode", {
+    EphyraStoryMode = controlDefs.mode("EphyraStoryMode", {
         label = "Story",
         values = EPHYRA_STORY_MODE_OPTIONS,
         displayValues = EPHYRA_STORY_MODE_DISPLAY,
         default = "default",
         helpText = "(Default lets the game decide, Forced guarantees Medea when normally eligible, Disabled suppresses it)",
     }),
-    settings.mode("EphyraMiniBossMode", {
+    EphyraMiniBossMode = controlDefs.mode("EphyraMiniBossMode", {
         label = "Miniboss",
         values = EPHYRA_MINIBOSS_MODE_OPTIONS,
         displayValues = EPHYRA_MINIBOSS_MODE_DISPLAY,
         default = "default",
         helpText = "(Choose which Ephyra miniboss can appear, or disable both)",
     }),
-    settings.choice("ReplaceHermesInEphyra", {
+    ReplaceHermesInEphyra = controlDefs.godChoice("ReplaceHermesInEphyra", {
         label = "Hub Hermes Replacement",
-        type = "string",
-        values = hubRewardReplacementValues,
-        displayValues = hubRewardReplacementDisplayValues,
         default = "",
+        emptyLabel = "Hermes (Default)",
         maxLen = 64,
         helpText = "(Replace the Hermes slot in Ephyra HubRewards with another god or remove it)",
     }),
-    settings.packedSet("PackedBannedEphyraSubRoomRewards", {
+    PackedBannedEphyraSubRoomRewards = controlDefs.packedSet("PackedBannedEphyraSubRoomRewards", {
         label = "SubRoomRewards",
         options = subRoomRewardOptions,
         helpText = "(Checked rewards are banned from normal Ephyra subroom reward pools)",
     }),
-    settings.packedSet("PackedBannedEphyraSubRoomRewardsHard", {
+    PackedBannedEphyraSubRoomRewardsHard = controlDefs.packedSet("PackedBannedEphyraSubRoomRewardsHard", {
         label = "SubRoomRewardsHard",
         options = subRoomRewardsHardOptions,
         helpText = "(Checked rewards are banned from hard Ephyra subroom reward pools)",
     }),
+}
+
+local rooms = catalog.rooms({})
+
+local npcs = catalog.npcs({
+    npc("Artemis", {
+        groupKey = "ArtemisSurface",
+        controlName = "NPCArtemisEphyra",
+    }),
+    npc("Heracles", {
+        controlName = "NPCHeraclesEphyra",
+    }),
 })
 
-return catalog.biomeBundle(definition, {
+local controlRefs = catalog.controlRefs({
+    "EphyraStoryMode",
+    "EphyraMiniBossMode",
+    "ReplaceHermesInEphyra",
+    "PackedBannedEphyraSubRoomRewards",
+    "PackedBannedEphyraSubRoomRewardsHard",
+})
+
+return catalog.biome(definition, {
     rooms = rooms,
     npcs = npcs,
-    controls = controls,
+    controlRefs = controlRefs,
+    controlDeclarations = controls,
 })

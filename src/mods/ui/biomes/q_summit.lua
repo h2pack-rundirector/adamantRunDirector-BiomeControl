@@ -1,10 +1,11 @@
 local deps = ...
 local module = {}
-local components = deps.components
+local uiShared = deps.uiShared
 
 function module.draw(ui)
-    components.DrawPlaceholder(ui.draw, "Summit")
-    return false
+    ui.draw.widgets.text("Summit")
+    ui.draw.widgets.separator()
+    uiShared.DrawMutedText(ui.draw, "No controls are available for this tab.")
 end
 
 return module

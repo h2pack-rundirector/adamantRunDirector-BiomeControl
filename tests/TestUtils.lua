@@ -267,8 +267,9 @@ function ResetBiomeControlHarness(opts)
 
     local data = dofile("src/mods/data.lua")
     local godAvailability = dofile("src/mods/cache/god_availability.lua").create()
-    data.godAvailability = godAvailability
-    local logic = import("mods/logic.lua", nil, data)
+    local logic = import("mods/logic.lua", nil, {
+        resolver = data.resolver,
+    })
 
     local config = dofile("src/config.lua")
     applyOverrides(config, opts.config)
@@ -280,9 +281,11 @@ function ResetBiomeControlHarness(opts)
         id = "BiomeControl",
         name = "Biome Control",
     })
-    module.data.define(data.storage.build())
-    module.controls.defineTemplates(data.controls.buildTemplates())
-    module.controls.define(data.controls.build())
+    module.data.define(data.buildStorage())
+    module.controls.defineTemplates(data.buildControlTemplates({
+        godAvailability = godAvailability,
+    }))
+    module.controls.define(data.buildControls())
     module.cache.define(logic.buildCacheDeclarations())
     local pendingControlFixtures = opts.controls
     module.ui.tab(function(_, ui)

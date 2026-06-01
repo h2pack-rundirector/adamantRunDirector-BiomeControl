@@ -82,9 +82,9 @@ function TestBiomeControlLogic:testBiomePriorityFiltersEligibleLootUntilSatisfie
         registerHooks = true,
         config = {
             Enabled = true,
-            PriorityBiome1 = "ApolloUpgrade",
         },
         controls = {
+            PriorityBiome1 = "ApolloUpgrade",
             PrioritizeSpecificRewardEnabled = true,
         },
         CurrentRun = {
@@ -106,9 +106,9 @@ function TestBiomeControlLogic:testBiomePriorityIgnoresGodPoolDisabledChoice()
         registerHooks = true,
         config = {
             Enabled = true,
-            PriorityBiome1 = "ApolloUpgrade",
         },
         controls = {
+            PriorityBiome1 = "ApolloUpgrade",
             PrioritizeSpecificRewardEnabled = true,
         },
         godAvailability = {
@@ -132,10 +132,10 @@ function TestBiomeControlLogic:testTrialRewardPrioritySetsEncounterLootPair()
         registerHooks = true,
         config = {
             Enabled = true,
-            PriorityTrial1 = "ApolloUpgrade",
-            PriorityTrial2 = "ZeusUpgrade",
         },
         controls = {
+            PriorityTrial1 = "ApolloUpgrade",
+            PriorityTrial2 = "ZeusUpgrade",
             PrioritizeTrialRewardEnabled = true,
         },
         CurrentRun = {},
@@ -165,10 +165,10 @@ function TestBiomeControlLogic:testTrialRewardPrioritySkipsGodPoolDisabledChoice
         registerHooks = true,
         config = {
             Enabled = true,
-            PriorityTrial1 = "ApolloUpgrade",
-            PriorityTrial2 = "ZeusUpgrade",
         },
         controls = {
+            PriorityTrial1 = "ApolloUpgrade",
+            PriorityTrial2 = "ZeusUpgrade",
             PrioritizeTrialRewardEnabled = true,
         },
         godAvailability = {
@@ -356,11 +356,15 @@ function TestBiomeControlLogic:testDreamRouteSetsNextRoomSetAndPool()
         registerHooks = true,
         config = {
             Enabled = true,
-            DreamRouteEnabled = true,
-            DreamRouteBiome1 = "G",
-            DreamRouteBiome2 = "I",
-            DreamRouteBiome3 = "N",
-            DreamRouteBiome4 = "P",
+        },
+        controls = {
+            DreamRoute = {
+                Enabled = true,
+                Biome1 = "G",
+                Biome2 = "I",
+                Biome3 = "N",
+                Biome4 = "P",
+            },
         },
         CurrentRun = {
             IsDreamRun = true,

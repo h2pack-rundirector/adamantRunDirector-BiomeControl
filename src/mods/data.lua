@@ -1,51 +1,54 @@
 local data = {}
 
-local definitions = import("mods/data/definitions.lua")
-local baseStorage = import("mods/data/base_storage.lua")
-local settings = import("mods/data/settings_builder.lua", nil, {
-    definitions = definitions,
-})
-local baseControls = import("mods/data/base_controls.lua", nil, {
-    settings = settings,
-})
+local controlDefs = import("mods/data/control_defs.lua")
 local biomeLoader = import("mods/data/biomes.lua")
-local controlTemplates = import("mods/controls/templates.lua")
+local resolverModule = import("mods/data/resolver.lua")
 
-local biomeRegistry = biomeLoader.load({
-    definitions = definitions,
+local biomeRegistry = biomeLoader.load()
+local resolver = resolverModule.create(biomeRegistry.catalog)
+local settingsControls = import("mods/data/controls/settings.lua", nil, {
+    controlDefs = controlDefs,
+})
+local rewardPriorityControls = import("mods/data/controls/reward_priority.lua", nil, {
+    controlDefs = controlDefs,
+})
+local dreamRouteControl = import("mods/data/controls/dream_route.lua", nil, {
+    controlDefs = controlDefs,
+    resolver = resolver,
 })
 
-data.definitions = definitions
-data.biomes = biomeRegistry
-data.catalog = biomeRegistry.catalog
-
-data.storage = {}
-function data.storage.build()
-    local nodes = baseStorage.build()
-    return nodes
+function data.buildStorage()
+    return {}
 end
 
-data.controls = {}
-
-function data.controls.buildTemplates()
-    return controlTemplates
+function data.buildControlTemplates(deps)
+    return import("mods/controls/templates.lua", nil, deps)
 end
 
-function data.controls.build()
+function data.buildControls()
     local controls = {}
+
     local function append(control)
         if controls[control.name] ~= nil then
             error("duplicate BiomeControl control '" .. tostring(control.name) .. "'", 0)
         end
         controls[control.name] = control
     end
-    for _, control in ipairs(baseControls.build()) do
-        append(control)
+
+    local function appendAll(list)
+        for _, control in ipairs(list or {}) do
+            append(control)
+        end
     end
-    for _, control in ipairs(biomeRegistry.controls or {}) do
-        append(control)
-    end
+
+    appendAll(settingsControls.build())
+    appendAll(rewardPriorityControls.build())
+    append(dreamRouteControl.build())
+    appendAll(biomeRegistry.controls)
+
     return controls
 end
+
+data.resolver = resolver
 
 return data

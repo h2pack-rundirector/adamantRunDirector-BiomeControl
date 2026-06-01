@@ -1,7 +1,6 @@
 local deps = ...
-local builder = deps.builder
 local catalog = deps.catalog
-local settings = deps.settings
+local controlDefs = deps.controlDefs
 
 local definition = {
     key = "G",
@@ -11,77 +10,93 @@ local definition = {
     ui = "mods/ui/biomes/g_oceanus.lua",
 }
 
-local room = builder.room(definition)
-local npc = builder.npc(definition)
+local room = catalog.room(definition)
+local npc = catalog.npc(definition)
+
+local controls = {
+    StoryNarcissus = controlDefs.modeWithRange("StoryNarcissus", {
+        min = 3,
+        max = 6,
+    }),
+    TrialOceanus = controlDefs.modeWithRange("TrialOceanus", {
+        min = 3,
+        max = 7,
+    }),
+    FountainOceanus = controlDefs.modeWithRange("FountainOceanus", {
+        min = 4,
+        max = 6,
+    }),
+    ShopOceanus = controlDefs.modeWithRange("ShopOceanus", {
+        min = 3,
+        max = 6,
+    }),
+    MiniBossWaterUnit = controlDefs.modeWithRange("MiniBossWaterUnit", {
+        min = 4,
+        max = 7,
+    }),
+    MiniBossCrawler = controlDefs.modeWithRange("MiniBossCrawler", {
+        min = 4,
+        max = 7,
+    }),
+    MiniBossJellyfish = controlDefs.modeWithRange("MiniBossJellyfish", {
+        min = 4,
+        max = 7,
+    }),
+    NPCArtemisOceanus = controlDefs.modeWithRange("NPCArtemisOceanus", {
+        min = 4,
+        max = 10,
+    }),
+    NPCNemesisOceanus = controlDefs.modeWithRange("NPCNemesisOceanus", {
+        min = 4,
+        max = 10,
+    }),
+}
 
 local rooms = catalog.rooms({
     room.story("Narcissus", {
-        setting = settings.modeWithRange("StoryNarcissus", {
-            min = 3,
-            max = 6,
-        }),
+        roomKey = "G_Story01",
+        controlName = "StoryNarcissus",
     }),
     room.trial({
-        setting = settings.modeWithRange("TrialOceanus", {
-            min = 3,
-            max = 7,
-        }),
+        controlName = "TrialOceanus",
     }),
     room.fountain({
-        setting = settings.modeWithRange("FountainOceanus", {
-            min = 4,
-            max = 6,
-        }),
+        roomKey = "G_Reprieve01",
+        controlName = "FountainOceanus",
     }),
     room.shop({
-        setting = settings.modeWithRange("ShopOceanus", {
-            min = 3,
-            max = 6,
-        }),
+        roomKey = "G_Shop01",
+        controlName = "ShopOceanus",
     }),
     room.minibossDepth("WaterUnit", {
         roomKey = "G_MiniBoss01",
         label = "Deep Serpent",
-        setting = settings.modeWithRange("MiniBossWaterUnit", {
-            min = 4,
-            max = 7,
-        }),
+        controlName = "MiniBossWaterUnit",
     }),
     room.minibossDepth("Crawler", {
         roomKey = "G_MiniBoss02",
         label = "King Vermin",
-        setting = settings.modeWithRange("MiniBossCrawler", {
-            min = 4,
-            max = 7,
-        }),
+        controlName = "MiniBossCrawler",
     }),
     room.minibossDepth("Jellyfish", {
         roomKey = "G_MiniBoss03",
         label = "Hellifish",
-        setting = settings.modeWithRange("MiniBossJellyfish", {
-            min = 4,
-            max = 7,
-        }),
+        controlName = "MiniBossJellyfish",
     }),
 })
 
 local npcs = catalog.npcs({
     npc("Artemis", {
         groupKey = "ArtemisUnderworld",
-        setting = settings.modeWithRange("NPCArtemisOceanus", {
-            min = 4,
-            max = 10,
-        }),
+        controlName = "NPCArtemisOceanus",
     }),
     npc("Nemesis", {
-        setting = settings.modeWithRange("NPCNemesisOceanus", {
-            min = 4,
-            max = 10,
-        }),
+        controlName = "NPCNemesisOceanus",
     }),
 })
 
-return catalog.biomeBundle(definition, {
+return catalog.biome(definition, {
     rooms = rooms,
     npcs = npcs,
+    controlDeclarations = controls,
 })

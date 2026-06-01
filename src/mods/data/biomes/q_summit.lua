@@ -8,7 +8,7 @@ local definition = {
     ui = "mods/ui/biomes/q_summit.lua",
 }
 
-return catalog.biomeBundle(definition, {
+return catalog.biome(definition, {
     rooms = catalog.rooms({}),
     npcs = catalog.npcs({}),
 })

@@ -22,9 +22,11 @@ local function init()
     import_as_fallback(rom.game)
     local data = import("mods/data.lua")
     local godAvailability = import("mods/cache/god_availability.lua").create()
-    data.godAvailability = godAvailability
-    local logic = import("mods/logic.lua", nil, data)
-    local ui = import("mods/ui.lua", nil, data)
+    local deps = {
+        resolver = data.resolver,
+    }
+    local logic = import("mods/logic.lua", nil, deps)
+    local ui = import("mods/ui.lua", nil, deps)
 
     local module = lib.createModule({
         pluginGuid = PLUGIN_GUID,
@@ -38,9 +40,11 @@ local function init()
         return
     end
 
-    module.data.define(data.storage.build())
-    module.controls.defineTemplates(data.controls.buildTemplates())
-    module.controls.define(data.controls.build())
+    module.data.define(data.buildStorage())
+    module.controls.defineTemplates(data.buildControlTemplates({
+        godAvailability = godAvailability,
+    }))
+    module.controls.define(data.buildControls())
     module.cache.define(logic.buildCacheDeclarations())
     module.actions.define({
         resetAll = function(host, uiData)

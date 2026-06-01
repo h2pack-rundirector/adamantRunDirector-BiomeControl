@@ -1,4 +1,7 @@
+local deps = ...
 local module = {}
+local resolver = deps.resolver
+local roomPatches = deps.roomPatches
 
 local function preventEchoScam(plan, runtime)
     if not runtime.controls.read("PreventEchoScam") then return end
@@ -17,6 +20,8 @@ local function preventEchoScam(plan, runtime)
 end
 
 function module.buildPatchPlan(_, runtime, plan)
+    roomPatches.patchForceOrDisableRoom(plan, runtime, resolver.minibossInfo("H", "Vampire"))
+    roomPatches.patchForceOrDisableRoom(plan, runtime, resolver.minibossInfo("H", "Lamia"))
     preventEchoScam(plan, runtime)
 end
 

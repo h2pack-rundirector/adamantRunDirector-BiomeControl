@@ -10,32 +10,34 @@ local function getStorageNode(storage, alias)
     end
 end
 
-function TestBiomeControlData:testCatalogKeepsBiomeAndNpcSettings()
+function TestBiomeControlData:testResolverKeepsBiomeAndNpcControlNames()
     local data = dofile("src/mods/data.lua")
-    local catalog = data.catalog
+    local resolver = data.resolver
+    local controls = data.buildControls()
 
-    local arachne = catalog.biomes.F.rooms.Arachne
-    lu.assertEquals(arachne.setting.name, "StoryArachne")
-    lu.assertEquals(arachne.setting.template, "ModeWithRange")
-    lu.assertEquals(arachne.setting.range.min, 4)
-    lu.assertEquals(arachne.setting.range.max, 8)
+    local arachne = resolver.room("F", "Arachne")
+    lu.assertEquals(arachne, "StoryArachne")
+    lu.assertEquals(controls.StoryArachne.template, "ModeWithRange")
+    lu.assertEquals(controls.StoryArachne.range.min, 4)
+    lu.assertEquals(controls.StoryArachne.range.max, 8)
 
-    local trial = catalog.biomes.F.rooms.Trial
-    lu.assertEquals(trial.setting.name, "TrialErebus")
-    lu.assertEquals(trial.setting.range.min, 6)
-    lu.assertEquals(trial.setting.range.max, 10)
+    local trial = resolver.room("F", "Trial")
+    lu.assertEquals(trial, "TrialErebus")
+    lu.assertEquals(controls.TrialErebus.range.min, 6)
+    lu.assertEquals(controls.TrialErebus.range.max, 10)
 
-    local nemesis = catalog.npcs.Nemesis.lookup.I
-    lu.assertEquals(nemesis.setting.name, "NPCNemesisTartarus")
-    lu.assertEquals(nemesis.setting.template, "ModeWithRange")
+    local nemesis = resolver.npc("Nemesis", "I")
+    lu.assertEquals(nemesis, "NPCNemesisTartarus")
+    lu.assertEquals(controls.NPCNemesisTartarus.template, "ModeWithRange")
 end
 
 function TestBiomeControlData:testControlsAreDeclaredBySemanticTemplate()
     local data = dofile("src/mods/data.lua")
-    local controls = data.controls.build()
+    local controls = data.buildControls()
 
     lu.assertEquals(controls.PreventEchoScam.template, "Flag")
-    lu.assertEquals(controls.ReplaceHermesInEphyra.template, "Choice")
+    lu.assertEquals(controls.ReplaceHermesInEphyra.template, "GodChoice")
+    lu.assertEquals(controls.ReplaceHermesInEphyra.displayValues[""], "Hermes (Default)")
     lu.assertEquals(controls.EphyraMiniBossMode.template, "Mode")
     lu.assertEquals(controls.ThessalyMiniBossMode.template, "ModeWithRange")
     lu.assertEquals(controls.PackedBannedEphyraSubRoomRewards.template, "PackedSet")
@@ -44,20 +46,24 @@ end
 
 function TestBiomeControlData:testStorageOnlyKeepsNonControlAliases()
     local data = dofile("src/mods/data.lua")
-    local storage = data.storage.build()
+    local storage = data.buildStorage()
 
-    lu.assertEquals(getStorageNode(storage, "PriorityBiome1").type, "string")
-    lu.assertEquals(getStorageNode(storage, "DreamRouteEnabled").type, "bool")
+    lu.assertNil(getStorageNode(storage, "DreamRouteEnabled"))
+    lu.assertNil(getStorageNode(storage, "DreamRouteBiome1"))
+    lu.assertNil(getStorageNode(storage, "PriorityBiome1"))
     lu.assertNil(getStorageNode(storage, "PreventEchoScam"))
     lu.assertNil(getStorageNode(storage, "StoryArachne"))
 end
 
 function TestBiomeControlData:testBaseAndBiomeControlsShareOneDeclarationSurface()
     local data = dofile("src/mods/data.lua")
-    local controls = data.controls.build()
+    local controls = data.buildControls()
 
     lu.assertEquals(controls.OnlyAllowForcedEncounters.template, "Flag")
     lu.assertEquals(controls.IgnoreMaxDepth.template, "Flag")
     lu.assertEquals(controls.NPCSpacing.template, "Choice")
+    lu.assertEquals(controls.DreamRoute.template, "DreamRoute")
+    lu.assertEquals(controls.PriorityBiome1.template, "GodChoice")
+    lu.assertEquals(controls.PriorityTrial1.template, "GodChoice")
     lu.assertEquals(controls.StoryArachne.template, "ModeWithRange")
 end

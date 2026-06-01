@@ -1,7 +1,6 @@
 local deps = ...
-local builder = deps.builder
 local catalog = deps.catalog
-local settings = deps.settings
+local controlDefs = deps.controlDefs
 
 local definition = {
     key = "F",
@@ -11,77 +10,93 @@ local definition = {
     ui = "mods/ui/biomes/f_erebus.lua",
 }
 
-local room = builder.room(definition)
-local npc = builder.npc(definition)
+local room = catalog.room(definition)
+local npc = catalog.npc(definition)
+
+local controls = {
+    StoryArachne = controlDefs.modeWithRange("StoryArachne", {
+        min = 4,
+        max = 8,
+    }),
+    TrialErebus = controlDefs.modeWithRange("TrialErebus", {
+        min = 6,
+        max = 10,
+    }),
+    FountainErebus = controlDefs.modeWithRange("FountainErebus", {
+        min = 4,
+        max = 8,
+    }),
+    ShopErebus = controlDefs.modeWithRange("ShopErebus", {
+        min = 4,
+        max = 6,
+    }),
+    MiniBossTreant = controlDefs.modeWithRange("MiniBossTreant", {
+        min = 4,
+        max = 6,
+    }),
+    MiniBossFogEmitter = controlDefs.modeWithRange("MiniBossFogEmitter", {
+        min = 4,
+        max = 6,
+    }),
+    MiniBossAssassin = controlDefs.modeWithRange("MiniBossAssassin", {
+        min = 4,
+        max = 6,
+    }),
+    NPCArtemisErebus = controlDefs.modeWithRange("NPCArtemisErebus", {
+        min = 4,
+        max = 10,
+    }),
+    NPCNemesisErebus = controlDefs.modeWithRange("NPCNemesisErebus", {
+        min = 4,
+        max = 10,
+    }),
+}
 
 local rooms = catalog.rooms({
     room.story("Arachne", {
-        setting = settings.modeWithRange("StoryArachne", {
-            min = 4,
-            max = 8,
-        }),
+        roomKey = "F_Story01",
+        controlName = "StoryArachne",
     }),
     room.trial({
-        setting = settings.modeWithRange("TrialErebus", {
-            min = 6,
-            max = 10,
-        }),
+        controlName = "TrialErebus",
     }),
     room.fountain({
-        setting = settings.modeWithRange("FountainErebus", {
-            min = 4,
-            max = 8,
-        }),
+        roomKey = "F_Reprieve01",
+        controlName = "FountainErebus",
     }),
     room.shop({
-        setting = settings.modeWithRange("ShopErebus", {
-            min = 4,
-            max = 6,
-        }),
+        roomKey = "F_Shop01",
+        controlName = "ShopErebus",
     }),
     room.minibossDepth("Treant", {
         roomKey = "F_MiniBoss01",
         label = "Root-Stalker",
-        setting = settings.modeWithRange("MiniBossTreant", {
-            min = 4,
-            max = 6,
-        }),
+        controlName = "MiniBossTreant",
     }),
     room.minibossDepth("FogEmitter", {
         roomKey = "F_MiniBoss02",
         label = "Shadow-Spiller",
-        setting = settings.modeWithRange("MiniBossFogEmitter", {
-            min = 4,
-            max = 6,
-        }),
+        controlName = "MiniBossFogEmitter",
     }),
     room.minibossDepth("Assassin", {
         roomKey = "F_MiniBoss03",
         label = "Master-Slicer",
-        setting = settings.modeWithRange("MiniBossAssassin", {
-            min = 4,
-            max = 6,
-        }),
+        controlName = "MiniBossAssassin",
     }),
 })
 
 local npcs = catalog.npcs({
     npc("Artemis", {
         groupKey = "ArtemisUnderworld",
-        setting = settings.modeWithRange("NPCArtemisErebus", {
-            min = 4,
-            max = 10,
-        }),
+        controlName = "NPCArtemisErebus",
     }),
     npc("Nemesis", {
-        setting = settings.modeWithRange("NPCNemesisErebus", {
-            min = 4,
-            max = 10,
-        }),
+        controlName = "NPCNemesisErebus",
     }),
 })
 
-return catalog.biomeBundle(definition, {
+return catalog.biome(definition, {
     rooms = rooms,
     npcs = npcs,
+    controlDeclarations = controls,
 })

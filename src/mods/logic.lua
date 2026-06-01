@@ -1,13 +1,11 @@
-local data = ...
+local deps = ...
 local logic = {}
 
-local catalog = data.catalog
+local resolver = deps.resolver
 local RUN_STATE_CACHE = "RunState"
 
 local logicDeps = {
-    catalog = catalog,
-    definitions = data.definitions,
-    godAvailability = data.godAvailability,
+    resolver = resolver,
 }
 
 local function getRunState(runtime)
@@ -18,13 +16,12 @@ local function getRunState(runtime)
     state.OnlyAllowForcedEncounters = runtime.controls.read("OnlyAllowForcedEncounters")
     state.ForcedNPCPending = {}
 
-    for _, groupKey in ipairs(catalog.npcs.orderedIds or {}) do
-        local group = catalog.npcs[groupKey]
-        state.ForcedNPCPending[groupKey] = {}
-        for _, def in ipairs(group.definitions or {}) do
-            local mode = runtime.controls.get(def.setting.name):mode()
+    for _, group in ipairs(resolver.npcGroups()) do
+        state.ForcedNPCPending[group.id] = {}
+        for _, def in ipairs(group.entries or {}) do
+            local mode = runtime.controls.get(def.controlName):mode()
             if mode == "forced" then
-                state.ForcedNPCPending[groupKey][def.biome] = true
+                state.ForcedNPCPending[group.id][def.biome] = true
             end
         end
     end

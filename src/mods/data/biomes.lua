@@ -46,18 +46,15 @@ local function appendBiome(target, biome)
     target[biome.key] = biome
 end
 
-local function appendSettings(target, settings)
-    for _, setting in ipairs(settings or {}) do
-        target[#target + 1] = setting
+local function appendControls(target, controls)
+    for _, control in ipairs(controls or {}) do
+        target[#target + 1] = control
     end
 end
 
-function biomes.load(args)
-    local settings = import("mods/data/settings_builder.lua", nil, {
-        definitions = args.definitions,
-    })
-    local builder = import("mods/data/biome_builder.lua")
-    local catalogBuilder = import("mods/data/catalog_builder.lua")
+function biomes.load()
+    local controlDefs = import("mods/data/control_defs.lua")
+    local biomeCatalog = import("mods/data/biome_catalog.lua")
     local ordered = {}
     local lookup = {}
     local controls = {}
@@ -68,10 +65,8 @@ function biomes.load(args)
 
     for _, importPath in ipairs(BIOME_IMPORTS) do
         local bundle = import(importPath, nil, {
-            builder = builder,
-            catalog = catalogBuilder,
-            settings = settings,
-            definitions = args.definitions,
+            catalog = biomeCatalog,
+            controlDefs = controlDefs,
         })
         local definition = bundle.definition
         local biome = bundle.biome
@@ -79,7 +74,7 @@ function biomes.load(args)
         lookup[definition.key] = biome
         appendBiome(catalog.biomes, biome)
         mergeNpcGroups(catalog.npcs, bundle.npcGroups)
-        appendSettings(controls, bundle.settings)
+        appendControls(controls, bundle.controls)
     end
 
     return {

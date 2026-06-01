@@ -1,18 +1,33 @@
 local deps = ...
 local module = {}
 local biomeUis = {}
-local catalog = deps.catalog
-local components = deps.components
+local uiShared = deps.uiShared
+local resolver = deps.resolver
 
-local biomeDeps = {
-    catalog = catalog,
-    components = components,
+local biomeStyle = {
+    colors = {
+        room = { 0.90, 0.82, 0.56, 1.0 },
+        miniboss = { 0.88, 0.38, 0.32, 1.0 },
+        rewards = { 0.70, 0.84, 0.96, 1.0 },
+        special = { 1.0, 0.60, 0.28, 1.0 },
+    },
+    opts = {
+        roomController = {
+            label = "",
+            controlWidth = 120,
+            rangeColumnX = 310,
+        },
+    },
 }
 
-for _, biome in ipairs(catalog.biomes or {}) do
-    if biome.ui then
-        biomeUis[biome.key] = import(biome.ui, nil, biomeDeps)
-    end
+local biomeDeps = {
+    biomeStyle = biomeStyle,
+    uiShared = uiShared,
+    resolver = resolver,
+}
+
+for _, moduleInfo in ipairs(resolver.biomeUiModules()) do
+    biomeUis[moduleInfo.biomeKey] = import(moduleInfo.path, nil, biomeDeps)
 end
 
 function module.draw(ui, biomeKey)
@@ -20,7 +35,6 @@ function module.draw(ui, biomeKey)
     if biomeUi and biomeUi.draw(ui) then
         return
     end
-    components.DrawPlaceholder(ui.draw, biomeKey)
 end
 
 return module

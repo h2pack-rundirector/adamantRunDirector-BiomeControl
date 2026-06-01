@@ -1,7 +1,6 @@
 local deps = ...
-local builder = deps.builder
 local catalog = deps.catalog
-local settings = deps.settings
+local controlDefs = deps.controlDefs
 
 local THESSALY_MINIBOSS_MODE_OPTIONS = { "default", "charybdis", "captain", "disabled" }
 local THESSALY_MINIBOSS_MODE_DISPLAY = {
@@ -19,53 +18,35 @@ local definition = {
     ui = "mods/ui/biomes/o_thessaly.lua",
 }
 
-local room = builder.room(definition)
-local npc = builder.npc(definition)
+local room = catalog.room(definition)
+local npc = catalog.npc(definition)
 
-local rooms = catalog.rooms({
-    room.story("Circe", {
-        setting = settings.modeWithRange("StoryCirce", {
-            min = 4,
-            max = 5,
-        }),
+local controls = {
+    StoryCirce = controlDefs.modeWithRange("StoryCirce", {
+        min = 4,
+        max = 5,
     }),
-    room.trial({
-        setting = settings.modeWithRange("TrialThessaly", {
-            min = 2,
-            max = 6,
-        }),
+    TrialThessaly = controlDefs.modeWithRange("TrialThessaly", {
+        min = 2,
+        max = 6,
     }),
-    room.fountain({
-        setting = settings.modeWithRange("FountainThessaly", {
-            min = 3,
-            max = 5,
-        }),
+    FountainThessaly = controlDefs.modeWithRange("FountainThessaly", {
+        min = 3,
+        max = 5,
     }),
-    room.shop({
-        setting = settings.modeWithRange("ShopThessaly", {
-            min = 4,
-            max = 5,
-        }),
+    ShopThessaly = controlDefs.modeWithRange("ShopThessaly", {
+        min = 4,
+        max = 5,
     }),
-})
-
-local npcs = catalog.npcs({
-    npc("Heracles", {
-        setting = settings.modeWithRange("NPCHeraclesThessaly", {
-            min = 0,
-            max = 10,
-        }),
+    NPCHeraclesThessaly = controlDefs.modeWithRange("NPCHeraclesThessaly", {
+        min = 0,
+        max = 10,
     }),
-    npc("Icarus", {
-        setting = settings.modeWithRange("NPCIcarusThessaly", {
-            min = 3,
-            max = 8,
-        }),
+    NPCIcarusThessaly = controlDefs.modeWithRange("NPCIcarusThessaly", {
+        min = 3,
+        max = 8,
     }),
-})
-
-local controls = catalog.controls({
-    settings.modeWithRange("ThessalyMiniBossMode", {
+    ThessalyMiniBossMode = controlDefs.modeWithRange("ThessalyMiniBossMode", {
         label = "Miniboss",
         roomGroup = "MiniBoss",
         values = THESSALY_MINIBOSS_MODE_OPTIONS,
@@ -79,10 +60,43 @@ local controls = catalog.controls({
         },
         helpText = "(Default lets the game decide, Forced selects one miniboss, Disabled suppresses both)",
     }),
+}
+
+local rooms = catalog.rooms({
+    room.story("Circe", {
+        roomKey = "O_Story01",
+        controlName = "StoryCirce",
+    }),
+    room.trial({
+        roomKey = "O_Devotion01",
+        controlName = "TrialThessaly",
+    }),
+    room.fountain({
+        roomKey = "O_Reprieve01",
+        controlName = "FountainThessaly",
+    }),
+    room.shop({
+        roomKey = "O_Shop01",
+        controlName = "ShopThessaly",
+    }),
 })
 
-return catalog.biomeBundle(definition, {
+local npcs = catalog.npcs({
+    npc("Heracles", {
+        controlName = "NPCHeraclesThessaly",
+    }),
+    npc("Icarus", {
+        controlName = "NPCIcarusThessaly",
+    }),
+})
+
+local controlRefs = catalog.controlRefs({
+    "ThessalyMiniBossMode",
+})
+
+return catalog.biome(definition, {
     rooms = rooms,
     npcs = npcs,
-    controls = controls,
+    controlRefs = controlRefs,
+    controlDeclarations = controls,
 })

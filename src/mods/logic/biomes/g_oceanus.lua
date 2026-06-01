@@ -1,6 +1,7 @@
 local deps = ...
 local module = {}
-local catalog = deps.catalog
+local resolver = deps.resolver
+local roomPatches = deps.roomPatches
 
 local TRIAL_ROOMS = {
     "G_Combat02", "G_Combat03", "G_Combat09",
@@ -9,23 +10,13 @@ local TRIAL_ROOMS = {
     "G_Combat16", "G_Combat17",
 }
 
-local function setForcedReward(plan, roomSetKey, roomKey, rewardName, minValue, maxValue)
-    local roomSet = RoomSetData[roomSetKey]
-    if not roomSet or not roomSet[roomKey] then return end
-    plan:setMany(roomSet[roomKey], {
-        ForcedReward = rewardName,
-        ForceAtBiomeDepthMin = minValue,
-        ForceAtBiomeDepthMax = maxValue,
-    })
-end
-
 local function injectForcedTrialReward(plan, runtime, log)
-    local trialDef = catalog.biomes.G.rooms.Trial
-    if not trialDef then
+    local trial = resolver.roomInfo("G", "Trial")
+    if not trial then
         return
     end
 
-    local control = runtime.controls.get(trialDef.setting.name)
+    local control = runtime.controls.get(trial.controlName)
     if control:mode() ~= "forced" then
         return
     end
@@ -33,7 +24,9 @@ local function injectForcedTrialReward(plan, runtime, log)
     local minValue, maxValue = control:range()
     for _, roomKey in ipairs(TRIAL_ROOMS) do
         if RoomSetData.G and RoomSetData.G[roomKey] then
-            setForcedReward(plan, "G", roomKey, "Devotion", minValue, maxValue)
+            roomPatches.forceRoomBetweenRange(plan, trial, roomKey, minValue, maxValue, {
+                ForcedReward = "Devotion",
+            })
             log("Deterministically injected trial reward into " .. roomKey)
             break
         end
@@ -41,6 +34,12 @@ local function injectForcedTrialReward(plan, runtime, log)
 end
 
 function module.buildPatchPlan(host, runtime, plan)
+    roomPatches.patchForceOrDisableRoom(plan, runtime, resolver.roomInfo("G", "Narcissus"))
+    roomPatches.patchForceOrDisableRoom(plan, runtime, resolver.roomInfo("G", "Fountain"))
+    roomPatches.patchForceOrDisableRoom(plan, runtime, resolver.roomInfo("G", "Shop"))
+    roomPatches.patchForceOrDisableRoom(plan, runtime, resolver.minibossInfo("G", "WaterUnit"))
+    roomPatches.patchForceOrDisableRoom(plan, runtime, resolver.minibossInfo("G", "Crawler"))
+    roomPatches.patchForceOrDisableRoom(plan, runtime, resolver.minibossInfo("G", "Jellyfish"))
     injectForcedTrialReward(plan, runtime, host.logIf)
 end
 
