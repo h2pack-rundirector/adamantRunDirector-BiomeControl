@@ -10,25 +10,36 @@ local TRIAL_ROOMS = {
     "G_Combat16", "G_Combat17",
 }
 
-local function injectForcedTrialReward(plan, runtime, log)
+local function patchTrialReward(plan, runtime, log)
     local trial = resolver.roomInfo("G", "Trial")
     if not trial then
         return
     end
 
     local control = runtime.controls.get(trial.controlName)
-    if control:mode() ~= "forced" then
+    local mode = control:mode()
+    if mode == "forced" then
+        local minValue, maxValue = control:range()
+        for _, roomKey in ipairs(TRIAL_ROOMS) do
+            if roomPatches.forceRoomBetweenRange(plan, trial, roomKey, minValue, maxValue, {
+                ForcedReward = "Devotion",
+            }) then
+                log("Deterministically injected trial reward into " .. roomKey)
+                break
+            end
+        end
         return
     end
 
-    local minValue, maxValue = control:range()
-    for _, roomKey in ipairs(TRIAL_ROOMS) do
-        if RoomSetData.G and RoomSetData.G[roomKey] then
-            roomPatches.forceRoomBetweenRange(plan, trial, roomKey, minValue, maxValue, {
-                ForcedReward = "Devotion",
-            })
-            log("Deterministically injected trial reward into " .. roomKey)
-            break
+    if mode == "disabled" then
+        local applied = false
+        for _, roomKey in ipairs(TRIAL_ROOMS) do
+            if roomPatches.preventRoomReward(plan, trial, roomKey, "Devotion") then
+                applied = true
+            end
+        end
+        if applied then
+            log("Suppressed Oceanus trial reward candidates")
         end
     end
 end
@@ -40,7 +51,7 @@ function module.buildPatchPlan(host, runtime, plan)
     roomPatches.patchForceOrDisableRoom(plan, runtime, resolver.minibossInfo("G", "WaterUnit"))
     roomPatches.patchForceOrDisableRoom(plan, runtime, resolver.minibossInfo("G", "Crawler"))
     roomPatches.patchForceOrDisableRoom(plan, runtime, resolver.minibossInfo("G", "Jellyfish"))
-    injectForcedTrialReward(plan, runtime, host.logIf)
+    patchTrialReward(plan, runtime, host.logIf)
 end
 
 return module

@@ -78,6 +78,14 @@ function roomPatches.disableRoom(plan, def, roomKey)
     return true
 end
 
+function roomPatches.preventRoomReward(plan, def, roomKey, rewardName)
+    local room = getRoomData(def, roomKey)
+    if not room then return false end
+
+    plan:appendUnique(room, "IneligibleRewards", rewardName)
+    return true
+end
+
 function roomPatches.patchForceOrDisableRoom(plan, runtime, info)
     local control = runtime.controls.get(info.controlName)
     local mode = control:mode()

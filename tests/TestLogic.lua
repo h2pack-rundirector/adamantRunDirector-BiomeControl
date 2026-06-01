@@ -77,6 +77,51 @@ function TestBiomeControlLogic:testForcedOceanusTrialInjectsDevotionReward()
     lu.assertEquals(RoomSetData.G.G_Combat02.ForceAtBiomeDepthMax, 6)
 end
 
+function TestBiomeControlLogic:testDisabledErebusTrialSuppressesDevotionReward()
+    local harness = ResetBiomeControlHarness({
+        controls = {
+            TrialErebus = { mode = "disabled" },
+        },
+        RoomSetData = {
+            F = {
+                F_Combat05 = { Name = "F_Combat05" },
+                F_Combat06 = { Name = "F_Combat06", IneligibleRewards = { "Boon" } },
+            },
+        },
+    })
+
+    local okApply, applyErr = harness.liveHost.applyMutation()
+    lu.assertTrue(okApply, tostring(applyErr))
+
+    lu.assertEquals(RoomSetData.F.F_Combat05.IneligibleRewards, { "Devotion" })
+    lu.assertEquals(RoomSetData.F.F_Combat06.IneligibleRewards, { "Boon", "Devotion" })
+    lu.assertNil(RoomSetData.F.F_Combat05.ForcedReward)
+
+    local okRevert, revertErr = harness.liveHost.revertMutation()
+    lu.assertTrue(okRevert, tostring(revertErr))
+    lu.assertNil(RoomSetData.F.F_Combat05.IneligibleRewards)
+    lu.assertEquals(RoomSetData.F.F_Combat06.IneligibleRewards, { "Boon" })
+end
+
+function TestBiomeControlLogic:testDisabledOceanusTrialSuppressesDevotionReward()
+    local harness = ResetBiomeControlHarness({
+        controls = {
+            TrialOceanus = { mode = "disabled" },
+        },
+        RoomSetData = {
+            G = {
+                G_Combat02 = { Name = "G_Combat02" },
+            },
+        },
+    })
+
+    local okApply, applyErr = harness.liveHost.applyMutation()
+    lu.assertTrue(okApply, tostring(applyErr))
+
+    lu.assertEquals(RoomSetData.G.G_Combat02.IneligibleRewards, { "Devotion" })
+    lu.assertNil(RoomSetData.G.G_Combat02.ForcedReward)
+end
+
 function TestBiomeControlLogic:testBiomePriorityFiltersEligibleLootUntilSatisfied()
     ResetBiomeControlHarness({
         registerHooks = true,
