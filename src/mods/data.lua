@@ -21,8 +21,8 @@ function data.buildStorage()
     return {}
 end
 
-function data.buildControlTemplates(deps)
-    return import("mods/controls/templates.lua", nil, deps)
+function data.buildControlTemplates()
+    return import("mods/controls/templates.lua")
 end
 
 function data.buildControls()

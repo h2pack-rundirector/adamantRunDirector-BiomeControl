@@ -1,5 +1,6 @@
 local deps = ...
 local module = {}
+local godAvailability = deps.godAvailability
 local uiShared = deps.uiShared
 
 local style = {
@@ -28,7 +29,7 @@ local PRIORITIZE_TRIAL_REWARD_CONTROL = "PrioritizeTrialRewardEnabled"
 
 local function drawGodChoice(ui, name)
     local control = ui.controls.get(name)
-    control:refreshVisibility(ui.data)
+    control:refreshVisibility(godAvailability.availableGods(ui.data))
     ui.draw.control(control, "default", style.opts.godChoice)
 end
 

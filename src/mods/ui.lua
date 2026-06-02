@@ -1,5 +1,5 @@
 local deps = ...
-local module = {}
+local moduleUi = {}
 local resolver = deps.resolver
 
 local UNDERWORLD_REGION = "Underworld"
@@ -52,6 +52,7 @@ local dreamUi = import("mods/ui/ui_dream.lua", nil, {
     uiShared = uiShared,
 })
 local settingsUi = import("mods/ui/ui_settings.lua", nil, {
+    godAvailability = deps.godAvailability,
     uiShared = uiShared,
 })
 
@@ -72,7 +73,7 @@ local function drawRegionTab(ui, region, childId)
     imgui.EndChild()
 end
 
-function module.drawTab(_, ui)
+local function drawTab(_, ui)
     local draw = ui.draw
     local imgui = draw.imgui
     if not imgui.BeginTabBar("BiomeControlControllerTabs") then
@@ -103,9 +104,15 @@ function module.drawTab(_, ui)
     return false
 end
 
-function module.drawQuickContent(_, ui)
+local function drawQuickContent(_, ui)
     QUICK_RESET_ALL_CONFIRM_OPTS.action = ui.actions.get("resetAll")
     ui.draw.widgets.confirmButton("biome_control_quick_reset_all", "Reset To Default", QUICK_RESET_ALL_CONFIRM_OPTS)
+    QUICK_RESET_ALL_CONFIRM_OPTS.action = nil
 end
 
-return module
+function moduleUi.attach(module)
+    module.ui.tab(drawTab)
+    module.ui.quickContent(drawQuickContent)
+end
+
+return moduleUi

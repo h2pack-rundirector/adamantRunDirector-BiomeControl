@@ -266,8 +266,9 @@ function ResetBiomeControlHarness(opts)
     installBaseGlobals(opts)
 
     local data = dofile("src/mods/data.lua")
-    local godAvailability = dofile("src/mods/cache/god_availability.lua").create()
+    local godAvailability = dofile("src/mods/shared/god_availability.lua")
     local logic = import("mods/logic.lua", nil, {
+        godAvailability = godAvailability,
         resolver = data.resolver,
     })
 
@@ -282,11 +283,9 @@ function ResetBiomeControlHarness(opts)
         name = "Biome Control",
     })
     module.data.define(data.buildStorage())
-    module.controls.defineTemplates(data.buildControlTemplates({
-        godAvailability = godAvailability,
-    }))
+    module.controls.defineTemplates(data.buildControlTemplates())
     module.controls.define(data.buildControls())
-    module.cache.define(logic.buildCacheDeclarations())
+    logic.defineCache(module)
     local pendingControlFixtures = opts.controls
     module.ui.tab(function(_, ui)
         if pendingControlFixtures ~= nil then
@@ -294,10 +293,10 @@ function ResetBiomeControlHarness(opts)
             pendingControlFixtures = nil
         end
     end)
-    module.mutation.patch(logic.buildPatchPlan)
-    godAvailability.registerShared(module)
+    logic.attachMutations(module)
+    godAvailability.attach(module)
     if opts.registerHooks then
-        logic.registerHooks(module)
+        logic.attachHooks(module)
     end
     module.activate()
     publishGodAvailability(pluginGuid, opts.godAvailability)

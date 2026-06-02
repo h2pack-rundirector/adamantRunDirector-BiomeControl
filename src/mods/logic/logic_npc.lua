@@ -1,7 +1,7 @@
 local deps = ...
 local module = {}
 local resolver = deps.resolver
-local GetRunState = deps.GetRunState
+local getRunState = deps.getRunState
 
 local npcPriorityList = { "Artemis", "Icarus", "Heracles", "Athena", "Nemesis" }
 local forcePattern = "[FGHINOPQ]$"
@@ -26,7 +26,7 @@ function module.registerHooks(moduleRef)
         local legalEncounters = args.LegalEncounters or room.LegalEncounters
         if not legalEncounters then return base(currentRun, room, args) end
 
-        local state = GetRunState(runtime)
+        local state = getRunState(runtime)
         if not state then return base(currentRun, room, args) end
 
         local currentRoomSet = room and room.RoomSetName
@@ -120,7 +120,7 @@ function module.registerHooks(moduleRef)
     for _, npcName in ipairs(npcPriorityList) do
         moduleRef.hooks.wrap("Begin" .. npcName .. "Encounter", function(host, runtime, base, currentRun, room, args)
             if host.isEnabled() then
-                local state = GetRunState(runtime)
+                local state = getRunState(runtime)
                 if state then
                     state.NPCEncounterSeen[npcName] = true
                 end

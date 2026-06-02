@@ -1,19 +1,22 @@
 local deps = ...
 local module = {}
-local GetRunState = deps.GetRunState
+local getRunState = deps.getRunState
+local godAvailability = deps.godAvailability
 
 local function priorityKeyForBiome(runtime, biomeIndex)
     biomeIndex = math.max((biomeIndex or 0) - 1, 0)
-    if biomeIndex == 0 then return runtime.controls.get("PriorityBiome1"):readAvailable(runtime.data) end
-    if biomeIndex == 1 then return runtime.controls.get("PriorityBiome2"):readAvailable(runtime.data) end
-    if biomeIndex == 2 then return runtime.controls.get("PriorityBiome3"):readAvailable(runtime.data) end
-    if biomeIndex == 3 then return runtime.controls.get("PriorityBiome4"):readAvailable(runtime.data) end
+    local availableGods = godAvailability.availableGods(runtime.data)
+    if biomeIndex == 0 then return runtime.controls.get("PriorityBiome1"):readAvailable(availableGods) end
+    if biomeIndex == 1 then return runtime.controls.get("PriorityBiome2"):readAvailable(availableGods) end
+    if biomeIndex == 2 then return runtime.controls.get("PriorityBiome3"):readAvailable(availableGods) end
+    if biomeIndex == 3 then return runtime.controls.get("PriorityBiome4"):readAvailable(availableGods) end
     return ""
 end
 
 local function priorityKeyForTrial(runtime, trialIndex)
-    if trialIndex == 1 then return runtime.controls.get("PriorityTrial1"):readAvailable(runtime.data) end
-    if trialIndex == 2 then return runtime.controls.get("PriorityTrial2"):readAvailable(runtime.data) end
+    local availableGods = godAvailability.availableGods(runtime.data)
+    if trialIndex == 1 then return runtime.controls.get("PriorityTrial1"):readAvailable(availableGods) end
+    if trialIndex == 2 then return runtime.controls.get("PriorityTrial2"):readAvailable(availableGods) end
     return ""
 end
 
@@ -21,7 +24,7 @@ function module.registerHooks(moduleRef)
     moduleRef.hooks.wrap("GetEligibleLootNames", function(host, runtime, base, excludeLootNames)
         if not host.isEnabled() then return base(excludeLootNames) end
 
-        local state = GetRunState(runtime)
+        local state = getRunState(runtime)
         if not state then return base(excludeLootNames) end
         state.BiomePrioritySatisfied = state.BiomePrioritySatisfied or {}
 
@@ -41,7 +44,7 @@ function module.registerHooks(moduleRef)
     moduleRef.hooks.wrap("GiveLoot", function(host, runtime, base, args)
         if not host.isEnabled() then return base(args) end
 
-        local state = GetRunState(runtime)
+        local state = getRunState(runtime)
         if not state then return base(args) end
 
         local result = base(args)

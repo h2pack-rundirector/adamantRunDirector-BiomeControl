@@ -5,6 +5,7 @@ local resolver = deps.resolver
 local RUN_STATE_CACHE = "RunState"
 
 local logicDeps = {
+    godAvailability = deps.godAvailability,
     resolver = resolver,
 }
 
@@ -29,14 +30,14 @@ local function getRunState(runtime)
     return state
 end
 
-logicDeps.GetRunState = getRunState
+logicDeps.getRunState = getRunState
 
 local biomeLogic = import("mods/logic/logic_biome.lua", nil, logicDeps)
 local lootLogic = import("mods/logic/logic_loot.lua", nil, logicDeps)
 local npcLogic = import("mods/logic/logic_npc.lua", nil, logicDeps)
 local dreamLogic = import("mods/logic/logic_dream.lua", nil, logicDeps)
 
-function logic.buildPatchPlan(host, runtime, plan)
+local function buildPatchPlan(host, runtime, plan)
     if biomeLogic.buildPatchPlan then
         biomeLogic.buildPatchPlan(host, runtime, plan)
     end
@@ -48,7 +49,11 @@ function logic.buildPatchPlan(host, runtime, plan)
     end
 end
 
-function logic.registerHooks(module)
+function logic.attachMutations(module)
+    module.mutation.patch(buildPatchPlan)
+end
+
+function logic.attachHooks(module)
     if biomeLogic.registerHooks then
         biomeLogic.registerHooks(module)
     end
@@ -63,8 +68,8 @@ function logic.registerHooks(module)
     end
 end
 
-function logic.buildCacheDeclarations()
-    return {
+function logic.defineCache(module)
+    module.cache.define({
         [RUN_STATE_CACHE] = {
             domain = "currentRun",
             key = "run",
@@ -76,7 +81,7 @@ function logic.buildCacheDeclarations()
                 }
             end,
         },
-    }
+    })
 end
 
 return logic

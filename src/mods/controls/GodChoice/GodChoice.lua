@@ -1,11 +1,10 @@
 local deps = ...
 
 local shared = deps.shared
-local godAvailability = deps.godAvailability
 
 local GodChoice = {}
 
-local function isValueAvailable(source, instance, value)
+local function isValueAvailable(instance, availableGods, value)
     if value == nil or value == "" then
         return true
     end
@@ -15,10 +14,10 @@ local function isValueAvailable(source, instance, value)
         return true
     end
 
-    if not godAvailability then
+    if availableGods == nil then
         return true
     end
-    return godAvailability.isAvailable(source, godKey)
+    return availableGods[godKey] ~= false
 end
 
 function GodChoice.prepare(instance)
@@ -51,9 +50,9 @@ function GodChoice.createRuntime(fields, instance)
         return fields.Value:read() or instance.default or ""
     end
 
-    function control.readAvailable(_, source)
+    function control.readAvailable(_, availableGods)
         local value = fields.Value:read() or instance.default or ""
-        if isValueAvailable(source, instance, value) then
+        if isValueAvailable(instance, availableGods, value) then
             return value
         end
         return instance.default or ""
@@ -73,9 +72,9 @@ function GodChoice.createUi(fields, instance)
         return fields.Value:write(value)
     end
 
-    function control.refreshVisibility(_, source)
+    function control.refreshVisibility(_, availableGods)
         for _, value in ipairs(instance.values or {}) do
-            instance.visibleValues[value] = isValueAvailable(source, instance, value)
+            instance.visibleValues[value] = isValueAvailable(instance, availableGods, value)
         end
     end
 
