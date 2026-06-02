@@ -223,11 +223,11 @@ local function applyControlFixtures(ui, fixtures)
     end
 end
 
-local function getLiveStore(liveHost)
+local function getLiveStore(liveModule)
     local registry = AdamantModpackLib_Runtime and AdamantModpackLib_Runtime.registry
     local modules = registry and registry.modules
     local records = modules and modules.records
-    local record = records and records[liveHost]
+    local record = records and records[liveModule]
     return record and record.store or nil
 end
 
@@ -301,11 +301,11 @@ function ResetBiomeControlHarness(opts)
     module.activate()
     publishGodAvailability(pluginGuid, opts.godAvailability)
 
-    local liveHost = lib.createFrameworkRuntime("adamant-ModpackFramework").modules.getLiveHost(pluginGuid)
-    local store = getLiveStore(liveHost)
+    local liveModule = lib.createFrameworkRuntime("adamant-ModpackFramework").modules.getLiveModule(pluginGuid)
+    local store = getLiveStore(liveModule)
     if opts.controls ~= nil then
-        liveHost.drawTab()
-        liveHost.flush()
+        liveModule.drawTab()
+        liveModule.flush()
     end
 
     return {
@@ -313,7 +313,7 @@ function ResetBiomeControlHarness(opts)
         logic = logic,
         config = config,
         store = store,
-        liveHost = liveHost,
+        liveModule = liveModule,
         wrappers = registeredWraps,
     }
 end
