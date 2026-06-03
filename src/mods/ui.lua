@@ -106,7 +106,7 @@ end
 
 local function drawQuickContent(_, ui)
     if ui.draw.widgets.confirmButton("biome_control_quick_reset_all", "Reset To Default", QUICK_RESET_ALL_CONFIRM_OPTS) then
-        ui.controls.resetAll()
+        ui.resetAll()
     end
 end
 
