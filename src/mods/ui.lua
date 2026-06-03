@@ -105,9 +105,9 @@ local function drawTab(_, ui)
 end
 
 local function drawQuickContent(_, ui)
-    QUICK_RESET_ALL_CONFIRM_OPTS.action = ui.actions.get("resetAll")
-    ui.draw.widgets.confirmButton("biome_control_quick_reset_all", "Reset To Default", QUICK_RESET_ALL_CONFIRM_OPTS)
-    QUICK_RESET_ALL_CONFIRM_OPTS.action = nil
+    if ui.draw.widgets.confirmButton("biome_control_quick_reset_all", "Reset To Default", QUICK_RESET_ALL_CONFIRM_OPTS) then
+        ui.controls.resetAll()
+    end
 end
 
 function moduleUi.attach(module)

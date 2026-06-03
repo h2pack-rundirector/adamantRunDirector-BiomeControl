@@ -59,8 +59,9 @@ function module.draw(ui)
     imgui.Spacing()
     draw.widgets.separator()
     imgui.Spacing()
-    style.opts.resetAllSettings.action = ui.actions.get("resetAll")
-    draw.widgets.confirmButton("biome_control_reset_all_settings", "Reset All Controls", style.opts.resetAllSettings)
+    if draw.widgets.confirmButton("biome_control_reset_all_settings", "Reset All Controls", style.opts.resetAllSettings) then
+        ui.controls.resetAll()
+    end
 end
 
 return module

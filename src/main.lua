@@ -51,11 +51,6 @@ local function init()
     logic.attachMutations(module)
     logic.attachHooks(module)
 
-    module.actions.define({
-        resetAll = function(host, uiData)
-            uiData.resetAll()
-        end,
-    })
     ui.attach(module)
 
     module.fallbackUi.attachGuiOnce(function(fallbackUi)
