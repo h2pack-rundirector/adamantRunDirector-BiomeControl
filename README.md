@@ -2,7 +2,7 @@
 
 Control the structure and pacing of each biome in both Hades II routes.
 
-Part of the [Run Director modpack](https://thunderstore.io/c/hades-ii/p/adamant/RunDirector_Core).
+Part of the [Run Director modpack](https://thunderstore.io/c/hades-ii/p/adamant/RunDirector_Modpack).
 
 ## What It Does
 
@@ -40,4 +40,4 @@ Use it when you want to direct biome pacing and encounter composition without re
 
 Install via r2modman.
 
-This module is usually installed as part of the full [Run Director modpack](https://thunderstore.io/c/hades-ii/p/adamant/RunDirector_Core), where it appears in the shared Run Director UI with the other run-control modules.
+This module is usually installed as part of the full [Run Director modpack](https://thunderstore.io/c/hades-ii/p/adamant/RunDirector_Modpack), where it appears in the shared Run Director UI with the other run-control modules.
