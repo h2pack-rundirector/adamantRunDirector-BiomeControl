@@ -261,7 +261,7 @@ end
 
 function ResetBiomeControlHarness(opts)
     opts = opts or {}
-    local pluginGuid = opts.pluginGuid or "adamant-RunDirector_BiomeControl:test"
+    local pluginGuid = opts.pluginGuid or "adamantRunDirector-BiomeControl:test"
     registeredWraps = {}
     installBaseGlobals(opts)
 
