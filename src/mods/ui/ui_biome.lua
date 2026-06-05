@@ -14,8 +14,13 @@ local biomeStyle = {
     opts = {
         roomController = {
             label = "",
-            controlWidth = 120,
-            rangeColumnX = 310,
+            labelWidth = 160,
+            controlWidth = 180,
+            rangeColumnX = 390,
+        },
+        godChoice = {
+            labelWidth = 160,
+            controlWidth = 180,
         },
     },
 }

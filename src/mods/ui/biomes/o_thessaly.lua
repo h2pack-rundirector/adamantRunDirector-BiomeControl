@@ -4,16 +4,14 @@ local biomeStyle = deps.biomeStyle
 local uiShared = deps.uiShared
 local resolver = deps.resolver
 
-local function drawRoom(ui, controlName)
-    ui.draw.control(ui.controls.get(controlName), "default", biomeStyle.opts.roomController)
+local function drawRoom(ui, entry)
+    local opts = biomeStyle.opts.roomController
+    opts.label = entry.label
+    ui.draw.control(ui.controls.get(entry.controlName), "default", opts)
 end
 
 local function drawThessalyMinibossRow(ui)
-    ui.draw.control(ui.controls.get(resolver.control("O", "ThessalyMiniBossMode")), "default", {
-        labelWidth = 160,
-        controlWidth = 200,
-        rangeColumnX = 410,
-    })
+    ui.draw.control(ui.controls.get(resolver.control("O", "ThessalyMiniBossMode")), "default", biomeStyle.opts.roomController)
 end
 
 function module.draw(ui)
@@ -21,10 +19,10 @@ function module.draw(ui)
     local imgui = draw.imgui
 
     uiShared.DrawSectionHeading(draw, "Rooms", biomeStyle.colors.room)
-    drawRoom(ui, resolver.room("O", "Circe"))
-    drawRoom(ui, resolver.room("O", "Trial"))
-    drawRoom(ui, resolver.room("O", "Fountain"))
-    drawRoom(ui, resolver.room("O", "Shop"))
+    drawRoom(ui, resolver.roomInfo("O", "Circe"))
+    drawRoom(ui, resolver.roomInfo("O", "Trial"))
+    drawRoom(ui, resolver.roomInfo("O", "Fountain"))
+    drawRoom(ui, resolver.roomInfo("O", "Shop"))
 
     imgui.Spacing()
 
