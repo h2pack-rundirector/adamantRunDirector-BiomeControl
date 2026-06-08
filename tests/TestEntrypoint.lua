@@ -87,7 +87,7 @@ function TestEntrypoint:testMainLuaBootsRealModule()
     })
 
     lu.assertNotNil(boot.liveModule)
-    lu.assertEquals(boot.liveModule.getHostId(), "adamantRunDirector-BiomeControl")
+    lu.assertEquals(boot.liveModule.getOwnerId(), "adamantRunDirector-BiomeControl")
     lu.assertEquals(boot.liveModule.getModuleId(), "BiomeControl")
     lu.assertEquals(boot.liveModule.getPackId(), "run-director")
     lu.assertEquals(#boot.callbacks.imgui, 1)
