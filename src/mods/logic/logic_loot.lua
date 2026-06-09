@@ -20,19 +20,34 @@ local function priorityKeyForTrial(runtime, trialIndex)
     return ""
 end
 
+local function currentBiomeIndex()
+    return CurrentRun and CurrentRun.EnteredBiomes or 0
+end
+
+local bypassBiomePriorityDepth = 0
+
+local function withBiomePriorityBypassed(callback)
+    bypassBiomePriorityDepth = bypassBiomePriorityDepth + 1
+    local ok, result = pcall(callback)
+    bypassBiomePriorityDepth = bypassBiomePriorityDepth - 1
+    if not ok then error(result, 0) end
+    return result
+end
+
 function module.registerHooks(moduleRef)
     moduleRef.hooks.wrap("GetEligibleLootNames", function(host, runtime, base, excludeLootNames)
         if not host.isEnabled() then return base(excludeLootNames) end
+        if bypassBiomePriorityDepth > 0 then return base(excludeLootNames) end
 
         local state = getRunState(runtime)
         if not state then return base(excludeLootNames) end
         state.BiomePrioritySatisfied = state.BiomePrioritySatisfied or {}
 
         local eligible = base(excludeLootNames)
-        local currentBiomeIndex = CurrentRun and CurrentRun.ClearedBiomes or 0
-        local priorityLootKey = priorityKeyForBiome(runtime, currentBiomeIndex)
+        local biomeIndex = currentBiomeIndex()
+        local priorityLootKey = priorityKeyForBiome(runtime, biomeIndex)
         local isPriorityMode = runtime.controls.read("PrioritizeSpecificRewardEnabled") and priorityLootKey ~= "" and
-            not state.BiomePrioritySatisfied[currentBiomeIndex]
+            not state.BiomePrioritySatisfied[biomeIndex]
 
         if isPriorityMode and Contains(eligible, priorityLootKey) then
             return { priorityLootKey }
@@ -48,11 +63,11 @@ function module.registerHooks(moduleRef)
         if not state then return base(args) end
 
         local result = base(args)
-        local currentBiomeIndex = CurrentRun and CurrentRun.ClearedBiomes or 0
+        local biomeIndex = currentBiomeIndex()
         local lootName = args and (args.ForceLootName or args.Name)
         if runtime.controls.read("PrioritizeSpecificRewardEnabled") and
-            lootName == priorityKeyForBiome(runtime, currentBiomeIndex) then
-            state.BiomePrioritySatisfied[currentBiomeIndex] = true
+            lootName == priorityKeyForBiome(runtime, biomeIndex) then
+            state.BiomePrioritySatisfied[biomeIndex] = true
         end
         return result
     end)
@@ -70,8 +85,10 @@ function module.registerHooks(moduleRef)
         local interacted = GetInteractedGodsThisRun() or {}
         if prioA ~= "" and prioB ~= "" and prioA ~= prioB and
             Contains(interacted, prioA) and Contains(interacted, prioB) and
-            Contains(GetEligibleLootNames(), prioA) and
-            Contains(GetEligibleLootNames({ prioA }), prioB) then
+            withBiomePriorityBypassed(function()
+                return Contains(GetEligibleLootNames(), prioA) and
+                    Contains(GetEligibleLootNames({ prioA }), prioB)
+            end) then
             room.Encounter.LootAName = prioA
             room.Encounter.LootBName = prioB
         end

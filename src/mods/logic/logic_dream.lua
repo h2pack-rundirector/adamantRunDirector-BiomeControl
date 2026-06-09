@@ -8,21 +8,22 @@ local function updateDreamBiomePool(route, slot)
 end
 
 function module.registerHooks(moduleRef)
-    moduleRef.hooks.wrap("SelectNextDreamBiome", function(host, runtime, base, currentRoomSet)
-        if not host.isEnabled() then return base(currentRoomSet) end
+    moduleRef.hooks.wrap("SelectNextDreamBiome", function(host, runtime, base, source, args)
+        if not host.isEnabled() then return base(source, args) end
         if not CurrentRun or not CurrentRun.IsDreamRun or not CurrentRun.CurrentRoom then
-            return base(currentRoomSet)
+            return base(source, args)
         end
 
         local dreamRoute = runtime.controls.get("DreamRoute")
         local route = dreamRoute:route()
-        if not route then return base(currentRoomSet) end
+        if not route then return base(source, args) end
 
         local slot = (CurrentRun.EnteredBiomes or 0) + 1
         local nextRoomSet = dreamRoute:biomeAt(slot)
-        if not nextRoomSet then return base(currentRoomSet) end
+        if not nextRoomSet then return base(source, args) end
+        local currentRoomSet = CurrentRun.BiomeVisitOrder and CurrentRun.BiomeVisitOrder[CurrentRun.EnteredBiomes]
         if dreamRoute:isNaturalNext(currentRoomSet, nextRoomSet) then
-            return base(currentRoomSet)
+            return base(source, args)
         end
 
         CurrentRun.CurrentRoom.NextRoomSet = { nextRoomSet }

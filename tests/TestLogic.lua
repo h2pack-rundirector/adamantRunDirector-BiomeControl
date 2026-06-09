@@ -133,7 +133,7 @@ function TestBiomeControlLogic:testBiomePriorityFiltersEligibleLootUntilSatisfie
             PrioritizeSpecificRewardEnabled = true,
         },
         CurrentRun = {
-            ClearedBiomes = 0,
+            EnteredBiomes = 1,
         },
         GetEligibleLootNames = function()
             return { "ZeusUpgrade", "ApolloUpgrade" }
@@ -144,6 +144,31 @@ function TestBiomeControlLogic:testBiomePriorityFiltersEligibleLootUntilSatisfie
 
     GiveLoot({ ForceLootName = "ApolloUpgrade" })
     lu.assertEquals(GetEligibleLootNames({}), { "ZeusUpgrade", "ApolloUpgrade" })
+end
+
+function TestBiomeControlLogic:testBiomePriorityUsesCurrentEnteredBiome()
+    ResetBiomeControlHarness({
+        registerHooks = true,
+        config = {
+            Enabled = true,
+        },
+        controls = {
+            PriorityBiome1 = "ApolloUpgrade",
+            PriorityBiome2 = "ZeusUpgrade",
+            PrioritizeSpecificRewardEnabled = true,
+        },
+        CurrentRun = {
+            EnteredBiomes = 2,
+        },
+        GetEligibleLootNames = function()
+            return { "ApolloUpgrade", "ZeusUpgrade" }
+        end,
+    })
+
+    lu.assertEquals(GetEligibleLootNames({}), { "ZeusUpgrade" })
+
+    GiveLoot({ ForceLootName = "ZeusUpgrade" })
+    lu.assertEquals(GetEligibleLootNames({}), { "ApolloUpgrade", "ZeusUpgrade" })
 end
 
 function TestBiomeControlLogic:testBiomePriorityIgnoresGodPoolDisabledChoice()
@@ -162,7 +187,7 @@ function TestBiomeControlLogic:testBiomePriorityIgnoresGodPoolDisabledChoice()
             },
         },
         CurrentRun = {
-            ClearedBiomes = 0,
+            EnteredBiomes = 1,
         },
         GetEligibleLootNames = function()
             return { "ZeusUpgrade", "ApolloUpgrade" }
@@ -194,6 +219,45 @@ function TestBiomeControlLogic:testTrialRewardPrioritySetsEncounterLootPair()
             return { "ApolloUpgrade", "ZeusUpgrade" }
         end,
     })
+
+    local room = {
+        ChosenRewardType = "Devotion",
+        Encounter = {},
+    }
+    SetupRoomReward(CurrentRun, room, nil, {})
+
+    lu.assertEquals(room.Encounter.LootAName, "ApolloUpgrade")
+    lu.assertEquals(room.Encounter.LootBName, "ZeusUpgrade")
+end
+
+function TestBiomeControlLogic:testTrialRewardPriorityIgnoresBiomePriorityFilter()
+    ResetBiomeControlHarness({
+        registerHooks = true,
+        config = {
+            Enabled = true,
+        },
+        controls = {
+            PriorityBiome1 = "DemeterUpgrade",
+            PriorityTrial1 = "ApolloUpgrade",
+            PriorityTrial2 = "ZeusUpgrade",
+            PrioritizeSpecificRewardEnabled = true,
+            PrioritizeTrialRewardEnabled = true,
+        },
+        CurrentRun = {
+            EnteredBiomes = 1,
+        },
+        GetInteractedGodsThisRun = function()
+            return { "ApolloUpgrade", "ZeusUpgrade", "DemeterUpgrade" }
+        end,
+        GetEligibleLootNames = function(excluded)
+            if excluded and excluded[1] == "ApolloUpgrade" then
+                return { "ZeusUpgrade", "DemeterUpgrade" }
+            end
+            return { "ApolloUpgrade", "ZeusUpgrade", "DemeterUpgrade" }
+        end,
+    })
+
+    lu.assertEquals(GetEligibleLootNames({}), { "DemeterUpgrade" })
 
     local room = {
         ChosenRewardType = "Devotion",
@@ -424,4 +488,78 @@ function TestBiomeControlLogic:testDreamRouteSetsNextRoomSetAndPool()
     lu.assertEquals(CurrentRun.CurrentRoom.NextRoomSet, { "G" })
     lu.assertEquals(CurrentRun.DreamBiomePool, { "I", "N", "P" })
     lu.assertEquals(GameState.LastDreamStartingBiome, "G")
+end
+
+function TestBiomeControlLogic:testDreamRouteFallbackPreservesSourceAndArgs()
+    local observedSource = nil
+    local observedArgs = nil
+    local source = { Name = "DreamSource" }
+    local args = {
+        ForceHBiomeRequirements = {
+            { Path = { "GameState", "RoomsEntered", "Dream_Intro" }, Comparison = "<=", Value = 1 },
+        },
+    }
+
+    ResetBiomeControlHarness({
+        registerHooks = true,
+        config = {
+            Enabled = true,
+        },
+        controls = {
+            DreamRoute = {
+                Enabled = false,
+            },
+        },
+        CurrentRun = {
+            IsDreamRun = true,
+            EnteredBiomes = 0,
+            CurrentRoom = {},
+        },
+        SelectNextDreamBiome = function(baseSource, baseArgs)
+            observedSource = baseSource
+            observedArgs = baseArgs
+            return "base"
+        end,
+    })
+
+    lu.assertEquals(SelectNextDreamBiome(source, args), "base")
+    lu.assertIs(observedSource, source)
+    lu.assertIs(observedArgs, args)
+end
+
+function TestBiomeControlLogic:testDreamRouteFallsBackForNaturalNextBiome()
+    local baseCalled = false
+    local source = { Name = "DreamSource" }
+    local args = { SkipChooseReward = true }
+
+    ResetBiomeControlHarness({
+        registerHooks = true,
+        config = {
+            Enabled = true,
+        },
+        controls = {
+            DreamRoute = {
+                Enabled = true,
+                Biome1 = "G",
+                Biome2 = "H",
+                Biome3 = "I",
+                Biome4 = "O",
+            },
+        },
+        CurrentRun = {
+            IsDreamRun = true,
+            EnteredBiomes = 1,
+            BiomeVisitOrder = { "G" },
+            CurrentRoom = {},
+        },
+        SelectNextDreamBiome = function(baseSource, baseArgs)
+            baseCalled = baseSource == source and baseArgs == args
+            CurrentRun.CurrentRoom.NextRoomSet = { "base" }
+        end,
+    })
+
+    SelectNextDreamBiome(source, args)
+
+    lu.assertTrue(baseCalled)
+    lu.assertEquals(CurrentRun.CurrentRoom.NextRoomSet, { "base" })
 end
