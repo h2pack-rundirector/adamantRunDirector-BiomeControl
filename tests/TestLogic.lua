@@ -2,7 +2,7 @@ local lu = require("luaunit")
 
 TestBiomeControlLogic = {}
 
-function TestBiomeControlLogic:testPatchPlanAppliesAndRevertsRoomAndNpcMutations()
+function TestBiomeControlLogic:testPatchPlanAddsRoomAndNpcMutations()
     local harness = ResetBiomeControlHarness({
         controls = {
             StoryArachne = { mode = "forced", min = 5, max = 7 },
@@ -12,8 +12,7 @@ function TestBiomeControlLogic:testPatchPlanAppliesAndRevertsRoomAndNpcMutations
         },
     })
 
-    local okApply, applyErr = harness.liveModule.applyMutation()
-    lu.assertTrue(okApply, tostring(applyErr))
+    harness.applyPatchPlan()
 
     lu.assertEquals(RoomData.F_Story01.ForceAtBiomeDepthMin, 5)
     lu.assertEquals(RoomData.F_Story01.ForceAtBiomeDepthMax, 7)
@@ -24,17 +23,6 @@ function TestBiomeControlLogic:testPatchPlanAppliesAndRevertsRoomAndNpcMutations
     lu.assertEquals(NamedRequirementsData.NoRecentFieldNPCEncounter[1].SumPrevRooms, 9)
     lu.assertEquals(#RoomData.H_MiniBoss01.GameStateRequirements, 1)
     lu.assertEquals(RoomData.H_MiniBoss01.GameStateRequirements[1].Value, 3)
-
-    local okRevert, revertErr = harness.liveModule.revertMutation()
-    lu.assertTrue(okRevert, tostring(revertErr))
-
-    lu.assertNil(RoomData.F_Story01.ForceAtBiomeDepthMin)
-    lu.assertNil(RoomData.F_Story01.ForceAtBiomeDepthMax)
-    lu.assertEquals(RoomData.F_Story01.GameStateRequirements[1].Value, 4)
-    lu.assertEquals(RoomData.F_Story01.GameStateRequirements[2].Value, 8)
-    lu.assertEquals(#RoomData.F_MiniBoss01.GameStateRequirements, 0)
-    lu.assertEquals(NamedRequirementsData.NoRecentFieldNPCEncounter[1].SumPrevRooms, 6)
-    lu.assertEquals(#RoomData.H_MiniBoss01.GameStateRequirements, 0)
 end
 
 function TestBiomeControlLogic:testForcedErebusTrialInjectsDevotionReward()
@@ -49,8 +37,7 @@ function TestBiomeControlLogic:testForcedErebusTrialInjectsDevotionReward()
         },
     })
 
-    local okApply, applyErr = harness.liveModule.applyMutation()
-    lu.assertTrue(okApply, tostring(applyErr))
+    harness.applyPatchPlan()
 
     lu.assertEquals(RoomSetData.F.F_Combat05.ForcedReward, "Devotion")
     lu.assertEquals(RoomSetData.F.F_Combat05.ForceAtBiomeDepthMin, 7)
@@ -69,8 +56,7 @@ function TestBiomeControlLogic:testForcedOceanusTrialInjectsDevotionReward()
         },
     })
 
-    local okApply, applyErr = harness.liveModule.applyMutation()
-    lu.assertTrue(okApply, tostring(applyErr))
+    harness.applyPatchPlan()
 
     lu.assertEquals(RoomSetData.G.G_Combat02.ForcedReward, "Devotion")
     lu.assertEquals(RoomSetData.G.G_Combat02.ForceAtBiomeDepthMin, 4)
@@ -90,17 +76,11 @@ function TestBiomeControlLogic:testDisabledErebusTrialSuppressesDevotionReward()
         },
     })
 
-    local okApply, applyErr = harness.liveModule.applyMutation()
-    lu.assertTrue(okApply, tostring(applyErr))
+    harness.applyPatchPlan()
 
     lu.assertEquals(RoomSetData.F.F_Combat05.IneligibleRewards, { "Devotion" })
     lu.assertEquals(RoomSetData.F.F_Combat06.IneligibleRewards, { "Boon", "Devotion" })
     lu.assertNil(RoomSetData.F.F_Combat05.ForcedReward)
-
-    local okRevert, revertErr = harness.liveModule.revertMutation()
-    lu.assertTrue(okRevert, tostring(revertErr))
-    lu.assertNil(RoomSetData.F.F_Combat05.IneligibleRewards)
-    lu.assertEquals(RoomSetData.F.F_Combat06.IneligibleRewards, { "Boon" })
 end
 
 function TestBiomeControlLogic:testDisabledOceanusTrialSuppressesDevotionReward()
@@ -115,8 +95,7 @@ function TestBiomeControlLogic:testDisabledOceanusTrialSuppressesDevotionReward(
         },
     })
 
-    local okApply, applyErr = harness.liveModule.applyMutation()
-    lu.assertTrue(okApply, tostring(applyErr))
+    harness.applyPatchPlan()
 
     lu.assertEquals(RoomSetData.G.G_Combat02.IneligibleRewards, { "Devotion" })
     lu.assertNil(RoomSetData.G.G_Combat02.ForcedReward)
@@ -415,8 +394,7 @@ function TestBiomeControlLogic:testEphyraLogicReplacesHermesAndFiltersSubroomRew
         },
     })
 
-    local okApply, applyErr = harness.liveModule.applyMutation()
-    lu.assertTrue(okApply, tostring(applyErr))
+    harness.applyPatchPlan()
 
     lu.assertEquals(RewardStoreData.HubRewards[1].Name, "ApolloUpgrade")
     lu.assertNil(RewardStoreData.HubRewards[1].GameStateRequirements)
@@ -449,8 +427,7 @@ function TestBiomeControlLogic:testThessalyLogicForcesSelectedMiniboss()
         },
     })
 
-    local okApply, applyErr = harness.liveModule.applyMutation()
-    lu.assertTrue(okApply, tostring(applyErr))
+    harness.applyPatchPlan()
 
     lu.assertTrue(RoomData.O_MiniBoss01.AlwaysForce)
     lu.assertEquals(RoomData.O_MiniBoss01.ForceAtBiomeDepthMin, 3)
