@@ -1,7 +1,6 @@
 package.path = "./?.lua;./?/init.lua;" .. package.path
 
 require("tests/TestUtils")
-require("tests/TestEntrypoint")
 require("tests/TestData")
 require("tests/TestLogic")
 

@@ -1,14 +1,4 @@
-local lu = require("luaunit")
-local function loadModpackToolsTest(name)
-    return dofile((os.getenv("MODPACK_TOOLS_DIR") or "../../ModpackTools") .. "/tests/" .. name)
-end
-
-local harness = loadModpackToolsTest("module_entrypoint_harness.lua")
-
-TestEntrypoint = {}
-
 local function configureBiomeControlEnv(env)
-    env.rom.game.Color = harness.makeColorTable()
     env.CurrentRun = nil
     env.GameState = {}
     env.RewardStoreData = {}
@@ -83,17 +73,4 @@ local function configureBiomeControlEnv(env)
     end
 end
 
-function TestEntrypoint:testMainLuaBootsRealModule()
-    local boot = harness.bootModule({
-        pluginGuid = "adamantRunDirector-BiomeControl",
-        moduleSrcDir = "src",
-        configureEnv = configureBiomeControlEnv,
-    })
-
-    lu.assertNotNil(boot.liveModule)
-    lu.assertEquals(boot.liveModule.getOwnerId(), "adamantRunDirector-BiomeControl")
-    lu.assertEquals(boot.liveModule.getModuleId(), "BiomeControl")
-    lu.assertEquals(boot.liveModule.getPackId(), "run-director")
-    lu.assertEquals(#boot.callbacks.imgui, 1)
-    lu.assertEquals(#boot.callbacks.menuBar, 2)
-end
+return configureBiomeControlEnv
