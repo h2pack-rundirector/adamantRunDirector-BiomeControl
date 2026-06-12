@@ -73,4 +73,8 @@ local function configureBiomeControlEnv(env)
     end
 end
 
-return configureBiomeControlEnv
+return {
+    expectedPackId = "run-director",
+    expectedModuleId = "BiomeControl",
+    configureEnv = configureBiomeControlEnv,
+}
