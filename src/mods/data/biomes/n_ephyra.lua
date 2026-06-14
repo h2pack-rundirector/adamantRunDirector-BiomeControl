@@ -63,7 +63,7 @@ local controls = {
         max = 10,
     }),
     EphyraStoryMode = controlDefs.mode("EphyraStoryMode", {
-        label = "Story",
+        label = "Medea",
         values = EPHYRA_STORY_MODE_OPTIONS,
         displayValues = EPHYRA_STORY_MODE_DISPLAY,
         default = "default",

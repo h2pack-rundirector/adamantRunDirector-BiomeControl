@@ -31,6 +31,17 @@ function TestBiomeControlData:testResolverKeepsBiomeAndNpcControlNames()
     lu.assertEquals(controls.NPCNemesisTartarus.template, "ModeWithRange")
 end
 
+function TestBiomeControlData:testStoryLabelsUseEncounterNames()
+    local data = dofile("src/mods/data.lua")
+    local resolver = data.resolver
+    local controls = data.buildControls()
+
+    lu.assertEquals(resolver.roomInfo("F", "Arachne").label, "Arachne")
+    lu.assertEquals(resolver.roomInfo("O", "Circe").label, "Circe")
+    lu.assertEquals(resolver.roomInfo("P", "Dionysus").label, "Dionysus")
+    lu.assertEquals(controls.EphyraStoryMode.label, "Medea")
+end
+
 function TestBiomeControlData:testControlsAreDeclaredBySemanticTemplate()
     local data = dofile("src/mods/data.lua")
     local controls = data.buildControls()

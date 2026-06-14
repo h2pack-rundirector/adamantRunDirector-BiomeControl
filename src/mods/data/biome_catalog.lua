@@ -88,7 +88,7 @@ function catalog.room(biome)
             entry.type = "Story"
             entry.biome = biome.key
             entry.biomeLabel = biome.label
-            entry.label = opts.label or "Story"
+            entry.label = opts.label or id
             return entry
         end,
         trial = function(opts)
