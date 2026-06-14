@@ -32,6 +32,7 @@ local style = {
 style.opts.defaultGroupText = {
     color = style.colors.heading,
 }
+local npcControllerOpts = uiShared.BuildLabeledOpts(style.opts.npcController)
 
 local ONLY_ALLOW_FORCED_CONTROL = "OnlyAllowForcedEncounters"
 local IGNORE_MAX_DEPTH_CONTROL = "IgnoreMaxDepth"
@@ -41,8 +42,7 @@ local function drawNpcBiomeRow(ui, def)
     local draw = ui.draw
     local imgui = draw.imgui
     imgui.Indent(16)
-    style.opts.npcController.label = def.biomeLabel
-    ui.draw.control(ui.controls.get(def.controlName), "default", style.opts.npcController)
+    ui.draw.control(ui.controls.get(def.controlName), "default", npcControllerOpts(def.biomeLabel))
     imgui.Unindent(16)
 end
 

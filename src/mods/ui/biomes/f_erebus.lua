@@ -5,8 +5,7 @@ local uiShared = deps.uiShared
 local resolver = deps.resolver
 
 local function drawRoom(ui, entry)
-    local opts = biomeStyle.opts.roomController
-    opts.label = entry.label
+    local opts = biomeStyle.roomControllerOpts(entry.label)
     ui.draw.control(ui.controls.get(entry.controlName), "default", opts)
 end
 

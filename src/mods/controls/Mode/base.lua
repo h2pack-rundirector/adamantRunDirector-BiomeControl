@@ -40,18 +40,8 @@ function base.storage(instance)
 end
 
 function base.dropdownOpts(instance, opts)
-    local target = opts or instance.modeOpts
-    if not target then
-        target = {}
-        instance.modeOpts = target
-    end
-
-    if opts then
-        target.label = opts.label or instance.label or ""
-    elseif target.label == nil then
-        target.label = instance.label or ""
-    end
-    target.tooltip = instance.helpText
+    local target = shared.drawOpts(instance)
+    shared.applyCommonDrawOpts(target, opts, instance)
     target.values = instance.encodedValues
     target.displayValues = instance.encodedDisplayValues
     return target

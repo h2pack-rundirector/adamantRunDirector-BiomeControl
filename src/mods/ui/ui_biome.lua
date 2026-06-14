@@ -13,7 +13,6 @@ local biomeStyle = {
     },
     opts = {
         roomController = {
-            label = "",
             labelWidth = 160,
             controlWidth = 180,
             rangeColumnX = 390,
@@ -24,6 +23,7 @@ local biomeStyle = {
         },
     },
 }
+biomeStyle.roomControllerOpts = uiShared.BuildLabeledOpts(biomeStyle.opts.roomController)
 
 local biomeDeps = {
     biomeStyle = biomeStyle,

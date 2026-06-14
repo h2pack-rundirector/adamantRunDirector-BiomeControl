@@ -4,7 +4,9 @@ local modeBase = import("mods/controls/Mode/base.lua", nil, {
 })
 
 return {
-    Flag = import("mods/controls/Flag/Flag.lua"),
+    Flag = import("mods/controls/Flag/Flag.lua", nil, {
+        shared = shared,
+    }),
     Choice = import("mods/controls/Choice/Choice.lua", nil, {
         shared = shared,
     }),

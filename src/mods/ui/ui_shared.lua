@@ -28,4 +28,21 @@ function uiShared.DrawMutedText(draw, text)
     draw.widgets.text(text, MUTED_TEXT_OPTS)
 end
 
+function uiShared.BuildLabeledOpts(baseOpts)
+    local cache = {}
+    return function(label)
+        local key = tostring(label or "")
+        local opts = cache[key]
+        if not opts then
+            opts = {}
+            for optKey, optValue in pairs(baseOpts or {}) do
+                opts[optKey] = optValue
+            end
+            opts.label = label or ""
+            cache[key] = opts
+        end
+        return opts
+    end
+end
+
 return uiShared

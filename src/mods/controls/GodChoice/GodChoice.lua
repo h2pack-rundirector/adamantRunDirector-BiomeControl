@@ -82,18 +82,8 @@ function GodChoice.createUi(fields, instance)
 end
 
 function GodChoice.draw(draw, control, instance, opts)
-    local target = instance.drawOpts
-    if not target then
-        target = {}
-        instance.drawOpts = target
-    end
-    target.label = opts and opts.label or instance.label or ""
-    target.tooltip = instance.helpText
-    target.labelWidth = opts and opts.labelWidth or nil
-    target.controlWidth = opts and opts.controlWidth or nil
-    target.controlGap = opts and opts.controlGap or nil
-    target.action = opts and opts.action or nil
-    target.value = opts and opts.value or nil
+    local target = shared.drawOpts(instance)
+    shared.applyCommonDrawOpts(target, opts, instance)
     target.values = instance.values
     target.displayValues = instance.displayValues
     target.valueColors = instance.valueColors

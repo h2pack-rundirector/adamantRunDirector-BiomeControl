@@ -1,3 +1,7 @@
+local deps = ...
+
+local shared = deps.shared
+
 local Flag = {}
 
 function Flag.prepare(instance)
@@ -44,17 +48,8 @@ function Flag.createUi(fields)
 end
 
 function Flag.draw(draw, control, instance, opts)
-    local target = opts or instance.drawOpts
-    if not target then
-        target = {}
-        instance.drawOpts = target
-    end
-    if opts then
-        target.label = opts.label or instance.label or ""
-    elseif target.label == nil then
-        target.label = instance.label or ""
-    end
-    target.tooltip = instance.helpText
+    local target = shared.drawOpts(instance)
+    shared.applyCommonDrawOpts(target, opts, instance)
     draw.widgets.checkbox(control:field(), target)
 end
 

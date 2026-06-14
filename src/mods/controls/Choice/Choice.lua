@@ -60,17 +60,8 @@ function Choice.createUi(fields)
 end
 
 function Choice.draw(draw, control, instance, opts)
-    local target = opts or instance.drawOpts
-    if not target then
-        target = {}
-        instance.drawOpts = target
-    end
-    if opts then
-        target.label = opts.label or instance.label or ""
-    elseif target.label == nil then
-        target.label = instance.label or ""
-    end
-    target.tooltip = instance.helpText
+    local target = shared.drawOpts(instance)
+    shared.applyCommonDrawOpts(target, opts, instance)
     target.values = instance.values
     target.displayValues = instance.displayValues
     target.valueColors = instance.valueColors
